@@ -38,9 +38,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		722E089014C0D8C400BC446D /* GallerryPickerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GallerryPickerViewController.h; sourceTree = "<group>"; };
-		722E089114C0D8C400BC446D /* GallerryPickerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GallerryPickerViewController.m; sourceTree = "<group>"; };
-		722E089214C0D8C400BC446D /* GallerryPickerViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = GallerryPickerViewController.xib; sourceTree = "<group>"; };
+		722E089014C0D8C400BC446D /* GallerryPickerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GallerryPickerViewController.h; path = ../GallerryPickerViewController.h; sourceTree = "<group>"; };
+		722E089114C0D8C400BC446D /* GallerryPickerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GallerryPickerViewController.m; path = ../GallerryPickerViewController.m; sourceTree = "<group>"; };
+		722E089214C0D8C400BC446D /* GallerryPickerViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = GallerryPickerViewController.xib; path = ../GallerryPickerViewController.xib; sourceTree = "<group>"; };
 		72524AA914C0EC3A0063C794 /* App Icon small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "App Icon small.png"; sourceTree = "<group>"; };
 		72524AAA14C0EC3A0063C794 /* App Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "App Icon.png"; sourceTree = "<group>"; };
 		728C03DB14BEA2B500556DAD /* ImgurViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImgurViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,9 +82,9 @@
 		72EBE74B14BEA6F60066C85E /* SBJsonWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonWriter.h; sourceTree = "<group>"; };
 		72EBE74C14BEA6F60066C85E /* SBJsonWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJsonWriter.m; sourceTree = "<group>"; };
 		72EBE76014BEA8B00066C85E /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background.png; sourceTree = "<group>"; };
-		72FF7E0114BF87350068EAB4 /* CaptionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptionViewController.h; sourceTree = "<group>"; };
-		72FF7E0214BF87350068EAB4 /* CaptionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CaptionViewController.m; sourceTree = "<group>"; };
-		72FF7E0314BF87350068EAB4 /* CaptionViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CaptionViewController.xib; sourceTree = "<group>"; };
+		72FF7E0114BF87350068EAB4 /* CaptionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CaptionViewController.h; path = ../CaptionViewController.h; sourceTree = "<group>"; };
+		72FF7E0214BF87350068EAB4 /* CaptionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CaptionViewController.m; path = ../CaptionViewController.m; sourceTree = "<group>"; };
+		72FF7E0314BF87350068EAB4 /* CaptionViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = CaptionViewController.xib; path = ../CaptionViewController.xib; sourceTree = "<group>"; };
 		72FF7E1114C02C480068EAB4 /* Imgur_Logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Imgur_Logo.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,18 +102,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7237F58514C4218600D3ACBF /* GalleryPicker */ = {
+			isa = PBXGroup;
+			children = (
+				722E089014C0D8C400BC446D /* GallerryPickerViewController.h */,
+				722E089114C0D8C400BC446D /* GallerryPickerViewController.m */,
+				722E089214C0D8C400BC446D /* GallerryPickerViewController.xib */,
+			);
+			name = GalleryPicker;
+			sourceTree = "<group>";
+		};
+		7237F58714C4219600D3ACBF /* CaptionView */ = {
+			isa = PBXGroup;
+			children = (
+				72FF7E0114BF87350068EAB4 /* CaptionViewController.h */,
+				72FF7E0214BF87350068EAB4 /* CaptionViewController.m */,
+				72FF7E0314BF87350068EAB4 /* CaptionViewController.xib */,
+			);
+			name = CaptionView;
+			sourceTree = "<group>";
+		};
 		728C03D014BEA2B500556DAD = {
 			isa = PBXGroup;
 			children = (
 				72524AA914C0EC3A0063C794 /* App Icon small.png */,
 				72524AAA14C0EC3A0063C794 /* App Icon.png */,
-				722E089014C0D8C400BC446D /* GallerryPickerViewController.h */,
-				722E089114C0D8C400BC446D /* GallerryPickerViewController.m */,
-				722E089214C0D8C400BC446D /* GallerryPickerViewController.xib */,
 				72FF7E1114C02C480068EAB4 /* Imgur_Logo.png */,
-				72FF7E0114BF87350068EAB4 /* CaptionViewController.h */,
-				72FF7E0214BF87350068EAB4 /* CaptionViewController.m */,
-				72FF7E0314BF87350068EAB4 /* CaptionViewController.xib */,
 				72EBE76014BEA8B00066C85E /* background.png */,
 				72EBE73314BEA6F60066C85E /* JSON */,
 				728C03E514BEA2B500556DAD /* Webbb */,
@@ -143,6 +157,8 @@
 		728C03E514BEA2B500556DAD /* Webbb */ = {
 			isa = PBXGroup;
 			children = (
+				7237F58714C4219600D3ACBF /* CaptionView */,
+				7237F58514C4218600D3ACBF /* GalleryPicker */,
 				728C03EE14BEA2B500556DAD /* AppDelegate.h */,
 				728C03EF14BEA2B500556DAD /* AppDelegate.m */,
 				728C03F114BEA2B500556DAD /* ViewController.h */,

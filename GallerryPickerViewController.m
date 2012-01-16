@@ -13,6 +13,7 @@
 @implementation GallerryPickerViewController
 
 @synthesize results = _results, responseData = _responseData,scrollView = _scrollView,imageController = _imageController,activityView = _activityView;
+int pagesLoaded;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -20,6 +21,7 @@
     if (self) {
         // Custom initialization
     }
+    
     return self;
 }
 
@@ -44,9 +46,12 @@
     [self.view sendSubviewToBack:imageView];
     self.responseData = [NSMutableData data];
     self.results = [NSMutableArray array];  
+   
     NSURLRequest *request = [NSURLRequest requestWithURL:  
                              [NSURL URLWithString:@"http://imgur.com/gallery/new.json"]];  
     (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    pagesLoaded = 2;
+    
     // Do any additional setup after loading the view from its nib.
 }
 
@@ -55,6 +60,12 @@
     [super viewDidUnload];
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    if (self.activityView.isAnimating) {
+        [self.activityView stopAnimating];
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -77,12 +88,13 @@
 }  
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {  
+    pagesLoaded = 2;
     NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding]; 
     NSArray *resultsArray = [(NSDictionary*)[responseString JSONValue] objectForKey:@"gallery"];
     self.results = resultsArray;
     int frameWidth = self.scrollView.frame.size.width;
-    [self.scrollView setContentSize:CGSizeMake(frameWidth, 2000)];
-    for(int i = 0; i < 100 ; i++){
+    [self.scrollView setContentSize:CGSizeMake(frameWidth, 960)];
+    for(int i = 0; i < 48 ; i++){
         NSDictionary *initial = [self.results objectAtIndex:i];
         
         UIButton *thumbnail = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -100,7 +112,10 @@
     [self.activityView stopAnimating];
 }
 
-- (IBAction)buttonClicked:(id)sender{ 
+- (IBAction)buttonClicked:(id)sender{
+    [self.activityView setColor:[UIColor redColor]];
+    [self.activityView startAnimating];
+    [self.activityView setHidden:NO];
     UIButton *button = (UIButton *)sender;
     self.imageController.currentPage = [NSString stringWithFormat:@"%i",button.tag];
     self.imageController.results = self.results;
@@ -115,8 +130,32 @@
         self.imageController.textView.text = [initial objectForKey:@"title"];
     };
     [self presentModalViewController:self.imageController animated:YES];
+//    [self.activityView stopAnimating];
 //    int currentPage = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     //    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:currentPage];
 };
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if( self.scrollView.contentOffset.y > (460 * (pagesLoaded - 1)) && pagesLoaded < 5){
+        [self.scrollView setContentSize:CGSizeMake(self.scrollView.frame.size.width, 480 * (pagesLoaded + 1))];
+        for(int i = 24 * pagesLoaded; i < 24 * (pagesLoaded + 1) ; i++){
+            NSDictionary *initial = [self.results objectAtIndex:i];
+            
+            UIButton *thumbnail = [UIButton buttonWithType:UIButtonTypeCustom];
+            [thumbnail setImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@s.jpg",[initial objectForKey:@"hash"]]]]] forState:UIControlStateNormal];
+            int positionY = 80 * (i/4);
+            int positionX = 80 * (i%4);
+            thumbnail.frame = CGRectMake(positionX,positionY,80,80);
+            [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+            thumbnail.tag = i;
+            
+            [self.scrollView addSubview:thumbnail];
+            
+        }
+//        [self.activityView stopAnimating];
+        pagesLoaded ++;
+    }
+    
+}
 
 @end

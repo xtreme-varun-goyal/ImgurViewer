@@ -16,5 +16,5 @@
 @property (nonatomic,strong) IBOutlet UIScrollView *scrollView;
 @property (nonatomic,strong) ViewController *imageController;
 @property (nonatomic,strong) IBOutlet UIActivityIndicatorView *activityView;
-- (void)buttonClicked:(id)sender;
+- (IBAction)buttonClicked:(id)sender;
 @end

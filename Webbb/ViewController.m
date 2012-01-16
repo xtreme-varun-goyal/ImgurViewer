@@ -121,7 +121,7 @@
 //    for(int i = 0; i < [self.currentPage intValue] + 1; i++){
         NSDictionary *initial = [self.results objectAtIndex:[self.currentPage intValue]] ;
         UIImageView *accountImage = [[UIImageView alloc] init];
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
         
         int initialHeight = [[initial objectForKey:@"height"] intValue];
         int initialWidth = [[initial objectForKey:@"width"] intValue];
@@ -160,14 +160,12 @@
     NSInteger page = lround(fractionalPage);
     NSDictionary *initial = [self.results objectAtIndex:page];
     self.textView.text = [initial objectForKey:@"title"];
-    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:[self.currentPage intValue]];
-    if (!currentView.image && self.pageCount < 121 ) {        
-        [self.activityView startAnimating];
-        [self.activityView setHidden:NO];
+    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
+    if (!currentView.image && self.pageCount < 121 ) {
         self.pageCount++;
         UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
         initial = [self.results objectAtIndex:page] ;
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
         int initialHeight = [[initial objectForKey:@"height"] intValue];
         int initialWidth = [[initial objectForKey:@"width"] intValue];
         if(initialHeight > frameHeight | initialWidth > frameWidth){
@@ -201,7 +199,7 @@
     int currentPage = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     
     NSDictionary *initial = [self.results objectAtIndex:currentPage] ;
-    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
+    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
     UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 }
 
@@ -225,12 +223,12 @@
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
 //    for(int i = self.pageCount; i < [self.currentPage intValue] + 1; i++) {
-//        self.pageCount++;
+        self.pageCount++;
         [self.activityView startAnimating];
         [self.activityView setHidden:NO];
         UIImageView *currentView = [self.scrollView.subviews objectAtIndex:[self.currentPage intValue]];
         NSDictionary *initial= [self.results objectAtIndex:[self.currentPage intValue]] ;
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
         int initialHeight = [[initial objectForKey:@"height"] intValue];
         int initialWidth = [[initial objectForKey:@"width"] intValue];
         if(initialHeight > frameHeight | initialWidth > frameWidth){
