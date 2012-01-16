@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "GallerryPickerViewController.h"
 
 @class ViewController;
 
@@ -14,6 +15,6 @@
 
 @property (strong, nonatomic) UIWindow *window;
 
-@property (strong, nonatomic) ViewController *viewController;
+@property (strong, nonatomic) GallerryPickerViewController *viewController;
 
 @end
