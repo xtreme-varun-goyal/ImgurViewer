@@ -14,12 +14,13 @@
 - (void) showComments;
 - (void) dismissScreen;
 - (void) initialLoadImages;
+- (void) loadImage;
 @end
 
 @implementation ViewController
 @synthesize results = _results, responseData = _responseData,scrollView = _scrollView, activityView = _activityView, comments = _comments, toolBar = _toolBar, 
     textView = _textView, currentPage = _currentPage, backButton = _backButton,
-    pageCount = _pageCount;
+    pageCount = _pageCount,thread = _thread;
 
 - (void)didReceiveMemoryWarning
 {
@@ -36,8 +37,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    self.pageCount = 3;
+    self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadImage) object:nil];
     [self.activityView setHidden:NO];
     [self.activityView startAnimating];
 //    self.toolBar.hidden = YES;
@@ -50,7 +50,8 @@
     self.textView.frame = CGRectMake(0, 0, 320, 44);
     self.textView.numberOfLines = 4;
     self.textView.textColor = [UIColor whiteColor];
-    self.textView.font = [UIFont systemFontOfSize:18];
+    self.textView.font = [UIFont systemFontOfSize:14];
+    self.textView.minimumFontSize = 12;
     [self.textView setHidden:YES];
 //    self.results = [NSMutableArray array];  
 //    NSURLRequest *request = [NSURLRequest requestWithURL:  
@@ -73,15 +74,11 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.activityView setHidden:NO];
-    [self.activityView startAnimating];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -101,49 +98,38 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait | interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
 }
 
-//- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
-//{
-//    if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
-//        toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
-//    {
-//        self.scrollView.frame = CGRectMake(0, 44, 480, 212);
-//        self.textView.frame = CGRectMake(0, 0, 480, 22);
-//        self.toolBar.frame = CGRectMake(0, 256, 480, 44);
-//       ((UIImageView*) [self.view.subviews objectAtIndex:0]).frame = CGRectMake(0, 0, 480, 300);
-//    }
-//}
-
 - (void)initialLoadImages {  
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
-    [self.scrollView setContentSize:CGSizeMake(frameWidth * 120, frameHeight)];
+    for(int i = self.pageCount; i < [self.results count]; i ++){
+        UIImageView *accountImage = [[UIImageView alloc] init];
+        accountImage.frame = CGRectMake(frameWidth*i,6, 320, 360);
+        accountImage.image = [UIImage imageNamed:@"loading_background.png"];
+        [self.scrollView addSubview:accountImage];
+        accountImage.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+        accountImage.tag = -4;
+    }
+    [self.scrollView setContentSize:CGSizeMake(frameWidth * [self.results count], frameHeight)];
     
 //    for(int i = 0; i < [self.currentPage intValue] + 1; i++){
         NSDictionary *initial = [self.results objectAtIndex:[self.currentPage intValue]] ;
-        UIImageView *accountImage = [[UIImageView alloc] init];
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
+        UIImageView *currentView = [self.scrollView.subviews objectAtIndex:[self.currentPage intValue]];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
         
         int initialHeight = [[initial objectForKey:@"height"] intValue];
         int initialWidth = [[initial objectForKey:@"width"] intValue];
         if(initialHeight > frameHeight | initialWidth > frameWidth){
             int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
-            accountImage.frame = CGRectMake(frameWidth*[self.currentPage intValue], (frameHeight-height)/2, frameWidth,height);
+            currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue], (frameHeight-height)/2, frameWidth,height);
         }else{
-            accountImage.frame = CGRectMake(frameWidth*[self.currentPage intValue], (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+            currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue], (frameHeight-initialHeight)/2, initialWidth,initialHeight);
         };
-        accountImage.image = image;
-        [self.scrollView addSubview:accountImage];
-        [accountImage setMultipleTouchEnabled:YES];
-        [accountImage setUserInteractionEnabled:YES];
-        accountImage.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+        currentView.image = image;
+        [currentView setUserInteractionEnabled:YES];
+        currentView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 //    }
     self.pageCount = 1;
-    for(int i = self.pageCount; i < 120; i ++){
-        UIImageView *accountImage = [[UIImageView alloc] init];
-        [self.scrollView addSubview:accountImage];
-        accountImage.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 
-    }
     [self.activityView stopAnimating];
     [self.activityView setHidden:YES];
     self.toolBar.hidden = NO;
@@ -152,32 +138,16 @@
     [self.textView setHidden:NO];
 }
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    int frameWidth = self.scrollView.frame.size.width;
-    int frameHeight = self.scrollView.frame.size.height;
-    CGFloat pageWidth = scrollView.frame.size.width;
-    float fractionalPage = scrollView.contentOffset.x / pageWidth;
-    NSInteger page = lround(fractionalPage);
-    NSDictionary *initial = [self.results objectAtIndex:page];
-    self.textView.text = [initial objectForKey:@"title"];
-    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
-    if (!currentView.image && self.pageCount < 121 ) {
-        self.pageCount++;
-        UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
-        initial = [self.results objectAtIndex:page] ;
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
-        int initialHeight = [[initial objectForKey:@"height"] intValue];
-        int initialWidth = [[initial objectForKey:@"width"] intValue];
-        if(initialHeight > frameHeight | initialWidth > frameWidth){
-            int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
-            currentView.frame = CGRectMake(frameWidth*page + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
-        }else{
-            currentView.frame = CGRectMake(frameWidth*page + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
-        };
-        currentView.image = image;
 
-        [self.activityView stopAnimating];
-        [self.activityView setHidden:YES];
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat pageWidth = self.scrollView.frame.size.width;
+    float fractionalPage = self.scrollView.contentOffset.x / pageWidth;
+    NSInteger page = lround(fractionalPage);
+//    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
+    if(![self.thread isExecuting] && page < self.results.count){
+        self.textView.text = @"";
+        self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadImage) object:nil];
+        [self.thread start];
     }
 }
 
@@ -199,7 +169,7 @@
     int currentPage = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     
     NSDictionary *initial = [self.results objectAtIndex:currentPage] ;
-    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
+    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
     UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 }
 
@@ -222,32 +192,60 @@
 -(void) loadMoreImages{
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
-//    for(int i = self.pageCount; i < [self.currentPage intValue] + 1; i++) {
+    self.pageCount++;
+    [self.activityView startAnimating];
+    [self.activityView setHidden:NO];
+    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:[self.currentPage intValue]];
+    NSDictionary *initial= [self.results objectAtIndex:[self.currentPage intValue]] ;
+    UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]];
+    int initialHeight = [[initial objectForKey:@"height"] intValue];
+    int initialWidth = [[initial objectForKey:@"width"] intValue];
+    if(initialHeight > frameHeight | initialWidth > frameWidth){
+        int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
+        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
+    }else{
+        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+    };
+    currentView.image = image;
+    image = NULL;
+    [self.activityView stopAnimating];
+    [self.activityView setHidden:YES];
+}
+
+- (void) loadImage{
+    [self.scrollView setUserInteractionEnabled:NO];
+    int frameWidth = self.scrollView.frame.size.width;
+    int frameHeight = self.scrollView.frame.size.height;
+    CGFloat pageWidth = self.scrollView.frame.size.width;
+    float fractionalPage = self.scrollView.contentOffset.x / pageWidth;
+    NSInteger page = lround(fractionalPage);
+    NSDictionary *initial = [self.results objectAtIndex:page];
+//    self.textView.text = @"";
+    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
+    
+    self.textView.text = [initial objectForKey:@"title"];
+    if (currentView.tag == -4) {
         self.pageCount++;
-        [self.activityView startAnimating];
-        [self.activityView setHidden:NO];
-        UIImageView *currentView = [self.scrollView.subviews objectAtIndex:[self.currentPage intValue]];
-        NSDictionary *initial= [self.results objectAtIndex:[self.currentPage intValue]] ;
-        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@l.jpg",[initial objectForKey:@"hash"]]]]];
+        UIImageView *currentView = [self.scrollView.subviews objectAtIndex:page];
+        initial = [self.results objectAtIndex:page] ;
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@m.jpg",[initial objectForKey:@"hash"]]]]]; 
         int initialHeight = [[initial objectForKey:@"height"] intValue];
         int initialWidth = [[initial objectForKey:@"width"] intValue];
         if(initialHeight > frameHeight | initialWidth > frameWidth){
             int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
-            currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
+            currentView.frame = CGRectMake(frameWidth*page + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
         }else{
-            currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+            currentView.frame = CGRectMake(frameWidth*page + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
         };
         currentView.image = image;
-        image = NULL;
+        
         [self.activityView stopAnimating];
         [self.activityView setHidden:YES];
-//    }
-}
-//- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
-//    CGFloat pageWidth = self.scrollView.frame.size.width;
-//    int currentPage = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-//    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:currentPage];
-//	return currentView;
-//}
+        currentView.tag = 1;
+    }
+    [self.thread cancel];
+    [self.scrollView setUserInteractionEnabled:YES];
+
+};
 
 @end

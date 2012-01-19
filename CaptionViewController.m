@@ -74,14 +74,14 @@
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     // Attempt to request the reusable cell.
     int i = indexPath.row;
-	UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(320*i, 50 * i, 320, 60)];
+	UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(320*i, 60 * i, 320, 70)];
     if([self.results objectAtIndex:i]){
         NSDictionary *initial = [self.results objectAtIndex:i] ;
-        CGRect contentRect = CGRectMake(10,0, 300, 60);
+        CGRect contentRect = CGRectMake(10,0, 300, 70);
         UILabel *textView = [[UILabel alloc] initWithFrame:contentRect];
         
         textView.text = [NSString stringWithFormat:@"%@ - %@",[initial objectForKey:@"author"],[initial objectForKey:@"caption"]];
-        textView.numberOfLines = 2;
+        textView.numberOfLines = 4;
         textView.textColor = [UIColor whiteColor];
         textView.font = [UIFont systemFontOfSize:15];
         textView.backgroundColor = [UIColor clearColor];

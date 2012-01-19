@@ -18,6 +18,7 @@
 @property (nonatomic,strong) IBOutlet UILabel *textView;
 @property (nonatomic,strong) NSString *currentPage;
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *backButton;
+@property (nonatomic,strong) NSThread *thread;
 @property  int pageCount;
 -(IBAction)download;
 - (void) loadMoreImages;

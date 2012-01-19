@@ -10,11 +10,16 @@
 #import "SBJson.h"
 #import "ViewController.h"
 
+@interface GallerryPickerViewController ()
+-(void) loadMoreImages;
+@end
+
 @implementation GallerryPickerViewController
 
-@synthesize results = _results, responseData = _responseData,scrollView = _scrollView,imageController = _imageController,activityView = _activityView;
-int pagesLoaded;
+@synthesize results = _results, responseData = _responseData,scrollView = _scrollView,imageController = _imageController,activityView = _activityView, thread = _thread;
 
+int pagesLoaded;
+bool viewloaded = true;
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -35,9 +40,19 @@ int pagesLoaded;
 
 #pragma mark - View lifecycle
 
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    if(!viewloaded){
+        NSURLRequest *request = [NSURLRequest requestWithURL:  
+                                 [NSURL URLWithString:@"http://imgur.com/gallery/new.json"]];  
+        (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    }
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadMoreImages) object:nil];
     self.imageController = [[ViewController alloc] init];
     [self.activityView setHidden:NO];
     [self.activityView startAnimating];
@@ -81,16 +96,25 @@ int pagesLoaded;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {  
     [self.responseData appendData:data];  
+    [self.scrollView setUserInteractionEnabled:YES];
 }  
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {  
-    //    self.label.text = [NSString stringWithFormat:@"Connection failed: %@", [error description]];  
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error { 
+    [self.activityView stopAnimating];
+    viewloaded = false;
+    UIAlertView *alertNetwork = [[UIAlertView alloc] initWithTitle:@"No network connection" message:@"The app couldn't load, please check your internet connections and reopen the app" delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:nil, nil];
+    [alertNetwork show];
+    [self.scrollView setUserInteractionEnabled:NO];
 }  
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {  
     pagesLoaded = 2;
     NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding]; 
     NSArray *resultsArray = [(NSDictionary*)[responseString JSONValue] objectForKey:@"gallery"];
+    if([resultsArray count] < 10){
+        [self connection:connection didFailWithError:nil];
+        return;
+    }
     self.results = resultsArray;
     int frameWidth = self.scrollView.frame.size.width;
     [self.scrollView setContentSize:CGSizeMake(frameWidth, 960)];
@@ -101,7 +125,8 @@ int pagesLoaded;
         [thumbnail setImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@s.jpg",[initial objectForKey:@"hash"]]]]] forState:UIControlStateNormal];
         int positionY = 80 * (i/4);
         int positionX = 80 * (i%4);
-        thumbnail.frame = CGRectMake(positionX,positionY,80,80);
+        
+        thumbnail.frame = CGRectMake(positionX,positionY,80,90);
         [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
         thumbnail.tag = i;
         
@@ -130,15 +155,21 @@ int pagesLoaded;
         self.imageController.textView.text = [initial objectForKey:@"title"];
     };
     [self presentModalViewController:self.imageController animated:YES];
-//    [self.activityView stopAnimating];
-//    int currentPage = floor((self.scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
-    //    UIImageView *currentView = [self.scrollView.subviews objectAtIndex:currentPage];
 };
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if( self.scrollView.contentOffset.y > (460 * (pagesLoaded - 1)) && pagesLoaded < 5){
-        [self.scrollView setContentSize:CGSizeMake(self.scrollView.frame.size.width, 480 * (pagesLoaded + 1))];
-        for(int i = 24 * pagesLoaded; i < 24 * (pagesLoaded + 1) ; i++){
+    if( self.scrollView.contentOffset.y > (460 * (pagesLoaded - 1)) && pagesLoaded < 5 && !self.thread.isExecuting){
+        self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadMoreImages) object:nil];
+        [self.thread start];
+    }
+    
+}
+
+-(void) loadMoreImages{
+    int height = MIN(480 * (pagesLoaded + 1), ([self.results count]/4 + 1) * 80);
+    self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, height);
+    for(int i = 24 * pagesLoaded; [self.scrollView.subviews count] < 24 * (pagesLoaded + 1); i++){
+        if(i < [self.results count]){
             NSDictionary *initial = [self.results objectAtIndex:i];
             
             UIButton *thumbnail = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -150,12 +181,12 @@ int pagesLoaded;
             thumbnail.tag = i;
             
             [self.scrollView addSubview:thumbnail];
-            
         }
-//        [self.activityView stopAnimating];
-        pagesLoaded ++;
+        
     }
-    
+    //        [self.activityView stopAnimating];
+    pagesLoaded ++;
+    [self.thread cancel];
 }
 
 @end

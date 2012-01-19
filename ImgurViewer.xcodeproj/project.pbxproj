@@ -19,6 +19,8 @@
 		728C03F014BEA2B500556DAD /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 728C03EF14BEA2B500556DAD /* AppDelegate.m */; };
 		728C03F314BEA2B500556DAD /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 728C03F214BEA2B500556DAD /* ViewController.m */; };
 		728C03F614BEA2B500556DAD /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 728C03F414BEA2B500556DAD /* ViewController.xib */; };
+		72CC7BF514C6261700E4091C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72CC7BF414C6261700E4091C /* QuartzCore.framework */; };
+		72CC7BF914C64DAB00E4091C /* loading_background.png in Resources */ = {isa = PBXBuildFile; fileRef = 72CC7BF814C64DAB00E4091C /* loading_background.png */; };
 		72EBE74D14BEA6F60066C85E /* NSObject+SBJson.m in Sources */ = {isa = PBXBuildFile; fileRef = 72EBE73514BEA6F60066C85E /* NSObject+SBJson.m */; };
 		72EBE74E14BEA6F60066C85E /* SBJsonParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 72EBE73814BEA6F60066C85E /* SBJsonParser.m */; };
 		72EBE74F14BEA6F60066C85E /* SBJsonStreamParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 72EBE73A14BEA6F60066C85E /* SBJsonStreamParser.m */; };
@@ -56,6 +58,8 @@
 		728C03F114BEA2B500556DAD /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		728C03F214BEA2B500556DAD /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		728C03F514BEA2B500556DAD /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		72CC7BF414C6261700E4091C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		72CC7BF814C64DAB00E4091C /* loading_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading_background.png; sourceTree = "<group>"; };
 		72EBE73414BEA6F60066C85E /* NSObject+SBJson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SBJson.h"; sourceTree = "<group>"; };
 		72EBE73514BEA6F60066C85E /* NSObject+SBJson.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SBJson.m"; sourceTree = "<group>"; };
 		72EBE73614BEA6F60066C85E /* SBJson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJson.h; sourceTree = "<group>"; };
@@ -93,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72CC7BF514C6261700E4091C /* QuartzCore.framework in Frameworks */,
 				728C03E014BEA2B500556DAD /* UIKit.framework in Frameworks */,
 				728C03E214BEA2B500556DAD /* Foundation.framework in Frameworks */,
 				728C03E414BEA2B500556DAD /* CoreGraphics.framework in Frameworks */,
@@ -125,6 +130,7 @@
 		728C03D014BEA2B500556DAD = {
 			isa = PBXGroup;
 			children = (
+				72CC7BF814C64DAB00E4091C /* loading_background.png */,
 				72524AA914C0EC3A0063C794 /* App Icon small.png */,
 				72524AAA14C0EC3A0063C794 /* App Icon.png */,
 				72FF7E1114C02C480068EAB4 /* Imgur_Logo.png */,
@@ -147,6 +153,7 @@
 		728C03DE14BEA2B500556DAD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				72CC7BF414C6261700E4091C /* QuartzCore.framework */,
 				728C03DF14BEA2B500556DAD /* UIKit.framework */,
 				728C03E114BEA2B500556DAD /* Foundation.framework */,
 				728C03E314BEA2B500556DAD /* CoreGraphics.framework */,
@@ -272,6 +279,7 @@
 				722E089414C0D8C400BC446D /* GallerryPickerViewController.xib in Resources */,
 				72524AAB14C0EC3A0063C794 /* App Icon small.png in Resources */,
 				72524AAC14C0EC3A0063C794 /* App Icon.png in Resources */,
+				72CC7BF914C64DAB00E4091C /* loading_background.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,7 +352,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -362,7 +370,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
