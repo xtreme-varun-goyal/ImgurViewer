@@ -17,5 +17,10 @@
 @property (nonatomic,strong) ViewController *imageController;
 @property (nonatomic,strong) IBOutlet UIActivityIndicatorView *activityView;
 @property (nonatomic,strong) NSThread *thread;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *reldButton;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *hotButton;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *topBtn;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *latestBtn;
+@property (nonatomic,strong) NSString *currentViewTitle;
 - (IBAction)buttonClicked:(id)sender;
 @end

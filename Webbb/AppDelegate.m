@@ -20,8 +20,12 @@
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
-    self.viewController = [[GallerryPickerViewController alloc] initWithNibName:@"GallerryPickerViewController" bundle:nil];
-    self.window.rootViewController = self.viewController;
+        self.viewController = [[GallerryPickerViewController alloc] initWithNibName:@"GallerryPickerViewController" bundle:nil];
+
+    
+    UINavigationController *navControl = [[UINavigationController alloc] initWithRootViewController:self.viewController];
+    navControl.navigationBarHidden = YES;
+    self.window.rootViewController = navControl;
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -51,6 +55,8 @@
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
+    
+    [[UIApplication sharedApplication] setStatusBarHidden:NO];
     [self.viewController viewWillAppear:YES];
     /*
      Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.

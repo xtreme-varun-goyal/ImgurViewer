@@ -107,7 +107,6 @@
 						<int key="NSvFlags">266</int>
 						<string key="NSFrame">{{0, 416}, {320, 44}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
-						<reference key="NSNextKeyView"/>
 						<string key="NSReuseIdentifierKey">_NS:371</string>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -258,9 +257,9 @@
 						<reference key="object" ref="774585933"/>
 						<array class="NSMutableArray" key="children">
 							<reference ref="14755402"/>
-							<reference ref="268310347"/>
 							<reference ref="806964871"/>
 							<reference ref="471337737"/>
+							<reference ref="268310347"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
