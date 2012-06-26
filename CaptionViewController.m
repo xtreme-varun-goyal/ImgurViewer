@@ -8,6 +8,8 @@
 
 #import "CaptionViewController.h"
 #import "SBJson.h"
+#import "GifAnimatedView.h"
+#import "ImageFullScreenController.h"
 
 @interface CaptionViewController() 
 -(void) dismissScreen;
@@ -79,7 +81,14 @@
         NSDictionary *initial = [self.results objectAtIndex:i] ;
         CGRect contentRect = CGRectMake(10,0, 300, 70);
         UILabel *textView = [[UILabel alloc] initWithFrame:contentRect];
-        
+        NSString *caption = [initial objectForKey:@"caption"];
+        if (([caption rangeOfString:@".gif"].location != NSNotFound || [caption rangeOfString:@".jpg"].location != NSNotFound || [caption rangeOfString:@".png"].location != NSNotFound) && [caption rangeOfString:@"http://"].location != NSNotFound) {
+            cell.userInteractionEnabled = YES;
+        }
+        else{
+            cell.userInteractionEnabled = NO;
+        }
+//        [cell 
         textView.text = [NSString stringWithFormat:@"%@ - %@",[initial objectForKey:@"author"],[initial objectForKey:@"caption"]];
         textView.numberOfLines = 4;
         textView.textColor = [UIColor whiteColor];
@@ -92,6 +101,35 @@
     return cell;
 }
 
+- (void)tableView:(UITableView *)tableView 
+didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSDictionary *initial = [self.results objectAtIndex:indexPath.row] ;
+    NSString *caption = [initial objectForKey:@"caption"];
+    if ([caption rangeOfString:@".gif"].location != NSNotFound) {
+        GifAnimatedView *fullWebView = [[GifAnimatedView alloc] init];
+        int locStr = [caption rangeOfString:@".gif" options:NSBackwardsSearch].location;
+        int lochttp = [caption rangeOfString:@"http"].location;
+        NSString *subUrl = [caption substringWithRange:NSMakeRange(lochttp, (locStr-lochttp)+4)];
+        fullWebView.url = subUrl;
+        [self presentModalViewController:fullWebView animated:NO];
+    }else if([caption rangeOfString:@".jpg"].location != NSNotFound){
+        ImageFullScreenController *fullJpgView = [[ImageFullScreenController alloc] init];
+        int locStr = [caption rangeOfString:@".jpg"].location;
+        int lochttp = [caption rangeOfString:@"http"].location;
+        NSString *subUrl = [caption substringWithRange:NSMakeRange(lochttp, (locStr-lochttp)+4)];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:subUrl]]];
+        fullJpgView.imageView = [[UIImageView alloc] initWithImage:image];
+        [self presentModalViewController:fullJpgView animated:NO];
+    }else if([caption rangeOfString:@".png"].location != NSNotFound){
+        ImageFullScreenController *fullJpgView = [[ImageFullScreenController alloc] init];
+        int locStr = [caption rangeOfString:@".png"].location;
+        int lochttp = [caption rangeOfString:@"http"].location;
+        NSString *subUrl = [caption substringWithRange:NSMakeRange(lochttp, (locStr-lochttp)+4)];
+        UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:subUrl]]];
+        fullJpgView.imageView = [[UIImageView alloc] initWithImage:image];
+        [self presentModalViewController:fullJpgView animated:NO];
+    }
+   }         
 
 #pragma mark NSURLConnection Delegate methods  
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {  

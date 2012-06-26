@@ -2,10 +2,10 @@
 <archive type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1280</int>
-		<string key="IBDocument.SystemVersion">11C74</string>
+		<string key="IBDocument.SystemVersion">11D50d</string>
 		<string key="IBDocument.InterfaceBuilderVersion">1938</string>
-		<string key="IBDocument.AppKitVersion">1138.23</string>
-		<string key="IBDocument.HIToolboxVersion">567.00</string>
+		<string key="IBDocument.AppKitVersion">1138.32</string>
+		<string key="IBDocument.HIToolboxVersion">568.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			<string key="NS.object.0">933</string>
@@ -81,7 +81,8 @@
 							<object class="IBUINavigationItem" id="786799521">
 								<reference key="IBUINavigationBar" ref="512080203"/>
 								<string key="IBUITitle">ImgurViewer</string>
-								<object class="IBUIBarButtonItem" key="IBUIRightBarButtonItem" id="1037920448">
+								<object class="IBUIBarButtonItem" key="IBUILeftBarButtonItem" id="282673988">
+									<string key="IBUITitle">Next Page</string>
 									<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 									<int key="IBUIStyle">1</int>
 									<reference key="IBUINavigationItem" ref="786799521"/>
@@ -89,6 +90,12 @@
 										<int key="NSColorSpace">1</int>
 										<bytes key="NSRGB">MCAwIDAAA</bytes>
 									</object>
+								</object>
+								<object class="IBUIBarButtonItem" key="IBUIRightBarButtonItem" id="1037920448">
+									<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+									<int key="IBUIStyle">1</int>
+									<reference key="IBUINavigationItem" ref="786799521"/>
+									<reference key="IBUITintColor" ref="704759318"/>
 									<int key="IBUISystemItemIdentifier">13</int>
 								</object>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -108,11 +115,11 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						<int key="IBUIBarStyle">1</int>
 						<array class="NSMutableArray" key="IBUIItems">
-							<object class="IBUIBarButtonItem" id="817576314">
+							<object class="IBUIBarButtonItem" id="450494219">
+								<string key="IBUITitle">Upload</string>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
-								<float key="IBUIWidth">39</float>
+								<int key="IBUIStyle">2</int>
 								<reference key="IBUIToolbar" ref="524302301"/>
-								<int key="IBUISystemItemIdentifier">6</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="447124383">
 								<string key="IBUITitle">New</string>
@@ -167,14 +174,6 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
-						<string key="label">scrollView</string>
-						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="528227101"/>
-					</object>
-					<int key="connectionID">8</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">activityView</string>
 						<reference key="source" ref="372490531"/>
 						<reference key="destination" ref="980816606"/>
@@ -207,11 +206,35 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">nxtBtn</string>
+						<reference key="source" ref="372490531"/>
+						<reference key="destination" ref="282673988"/>
+					</object>
+					<int key="connectionID">42</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">reldButton</string>
 						<reference key="source" ref="372490531"/>
 						<reference key="destination" ref="1037920448"/>
 					</object>
 					<int key="connectionID">40</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">uploadBtn</string>
+						<reference key="source" ref="372490531"/>
+						<reference key="destination" ref="450494219"/>
+					</object>
+					<int key="connectionID">47</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">superScrollView</string>
+						<reference key="source" ref="372490531"/>
+						<reference key="destination" ref="528227101"/>
+					</object>
+					<int key="connectionID">51</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
@@ -243,9 +266,9 @@
 						<reference key="object" ref="191373211"/>
 						<array class="NSMutableArray" key="children">
 							<reference ref="980816606"/>
-							<reference ref="528227101"/>
 							<reference ref="512080203"/>
 							<reference ref="524302301"/>
+							<reference ref="528227101"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -284,6 +307,7 @@
 						<reference key="object" ref="786799521"/>
 						<array class="NSMutableArray" key="children">
 							<reference ref="1037920448"/>
+							<reference ref="282673988"/>
 						</array>
 						<reference key="parent" ref="512080203"/>
 					</object>
@@ -294,7 +318,7 @@
 							<reference ref="259262224"/>
 							<reference ref="447124383"/>
 							<reference ref="18853847"/>
-							<reference ref="817576314"/>
+							<reference ref="450494219"/>
 						</array>
 						<reference key="parent" ref="191373211"/>
 					</object>
@@ -314,14 +338,19 @@
 						<reference key="parent" ref="524302301"/>
 					</object>
 					<object class="IBObjectRecord">
-						<int key="objectID">33</int>
-						<reference key="object" ref="817576314"/>
-						<reference key="parent" ref="524302301"/>
+						<int key="objectID">41</int>
+						<reference key="object" ref="282673988"/>
+						<reference key="parent" ref="786799521"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">39</int>
 						<reference key="object" ref="1037920448"/>
 						<reference key="parent" ref="786799521"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">46</int>
+						<reference key="object" ref="450494219"/>
+						<reference key="parent" ref="524302301"/>
 					</object>
 				</array>
 			</object>
@@ -338,15 +367,16 @@
 				<string key="29.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="31.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="32.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<string key="33.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="39.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="41.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="46.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="7.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			</dictionary>
 			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">40</int>
+			<int key="maxID">51</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -368,9 +398,12 @@
 						<string key="activityView">UIActivityIndicatorView</string>
 						<string key="hotButton">UIBarButtonItem</string>
 						<string key="latestBtn">UIBarButtonItem</string>
+						<string key="nxtBtn">UIBarButtonItem</string>
 						<string key="reldButton">UIBarButtonItem</string>
 						<string key="scrollView">UIScrollView</string>
+						<string key="superScrollView">UIScrollView</string>
 						<string key="topBtn">UIBarButtonItem</string>
+						<string key="uploadBtn">UIBarButtonItem</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
 						<object class="IBToOneOutletInfo" key="activityView">
@@ -385,6 +418,10 @@
 							<string key="name">latestBtn</string>
 							<string key="candidateClassName">UIBarButtonItem</string>
 						</object>
+						<object class="IBToOneOutletInfo" key="nxtBtn">
+							<string key="name">nxtBtn</string>
+							<string key="candidateClassName">UIBarButtonItem</string>
+						</object>
 						<object class="IBToOneOutletInfo" key="reldButton">
 							<string key="name">reldButton</string>
 							<string key="candidateClassName">UIBarButtonItem</string>
@@ -393,8 +430,16 @@
 							<string key="name">scrollView</string>
 							<string key="candidateClassName">UIScrollView</string>
 						</object>
+						<object class="IBToOneOutletInfo" key="superScrollView">
+							<string key="name">superScrollView</string>
+							<string key="candidateClassName">UIScrollView</string>
+						</object>
 						<object class="IBToOneOutletInfo" key="topBtn">
 							<string key="name">topBtn</string>
+							<string key="candidateClassName">UIBarButtonItem</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="uploadBtn">
+							<string key="name">uploadBtn</string>
 							<string key="candidateClassName">UIBarButtonItem</string>
 						</object>
 					</dictionary>

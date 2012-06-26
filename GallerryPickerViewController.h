@@ -8,12 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import "ViewController.h"
+#import <iAd/iAd.h>
+#import "UploadImageController.h"
+#import "AdWhirlView.h"
 
-@interface GallerryPickerViewController : UIViewController
+@interface GallerryPickerViewController : UIViewController<ADBannerViewDelegate,AdWhirlDelegate>
 
 @property (nonatomic,strong) NSArray *results;
 @property (nonatomic, strong) NSMutableData *responseData;
-@property (nonatomic,strong) IBOutlet UIScrollView *scrollView;
+@property (nonatomic,strong) UIScrollView *scrollView;
 @property (nonatomic,strong) ViewController *imageController;
 @property (nonatomic,strong) IBOutlet UIActivityIndicatorView *activityView;
 @property (nonatomic,strong) NSThread *thread;
@@ -21,6 +24,13 @@
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *hotButton;
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *topBtn;
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *latestBtn;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *nxtBtn;
 @property (nonatomic,strong) NSString *currentViewTitle;
 - (IBAction)buttonClicked:(id)sender;
+@property (nonatomic,strong) AdWhirlView *adWhirl;
+@property (nonatomic,strong) ADBannerView *adView;
+@property (nonatomic,assign) BOOL bannerIsVisible;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *uploadBtn;
+@property (nonatomic,strong) UploadImageController *uploadImageView;
+@property (nonatomic,strong) IBOutlet UIScrollView *superScrollView;
 @end

@@ -12,6 +12,5 @@
 
 @property (nonatomic,strong) UIImageView *imageView;
 @property (nonatomic,strong) IBOutlet UIScrollView *scrollView;
-@property (nonatomic,strong) NSString *imageHash;
 
 @end
