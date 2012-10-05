@@ -20,7 +20,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "JSONKit.h"
+#import "CJSONDeserializer.h"
 
 @class AdWhirlConfig;
 @protocol AdWhirlConfigDelegate<NSObject>

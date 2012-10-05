@@ -29,7 +29,6 @@
 #import "AdWhirlAdNetworkRegistry.h"
 #import "UIColor+AdWhirlConfig.h"
 #import "AWNetworkReachabilityWrapper.h"
-#import "CJSONDeserializer.h"
 
 
 BOOL awIntVal(NSInteger *var, id val) {
