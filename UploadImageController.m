@@ -51,7 +51,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     UIImageView *backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [backgroundView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
     [self.retrieveCopy addTarget:self action:@selector(copyTitleText) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:backgroundView];
     [self.view sendSubviewToBack:backgroundView];
@@ -70,7 +73,7 @@
     [self.camPick addTarget:self action:@selector(camPicker) forControlEvents:UIControlEventTouchUpInside];
     [self.galleryPick addTarget:self action:@selector(galleryPicker) forControlEvents:UIControlEventTouchUpInside];
     self.admobView = [[GADBannerView alloc] init];
-    [self.admobView setFrame:CGRectMake(0, self.view.frame.size.height - 50, 320, 50)];
+    [self.admobView setFrame:CGRectMake(0, maxHeight - 70, minHeight, 50)];
     self.admobView.adUnitID = @"a14f409cc9d4b4f";
     self.admobView.rootViewController = self;
     [self.view addSubview:self.admobView];
@@ -117,19 +120,21 @@
 {
     float actualHeight = image.size.height;
     float actualWidth = image.size.width;
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     float imgRatio = actualWidth/actualHeight;
-    float maxRatio = 320.0/480.0;
+    float maxRatio = (minHeight*1.0)/maxHeight;
     
     if(imgRatio!=maxRatio){
         if(imgRatio < maxRatio){
-            imgRatio = 480.0 / actualHeight;
+            imgRatio = (maxHeight * 1.0) / actualHeight;
             actualWidth = imgRatio * actualWidth;
-            actualHeight = 480.0;
+            actualHeight = maxHeight;
         }
         else{
-            imgRatio = 320.0 / actualWidth;
+            imgRatio = (minHeight*1.0) / actualWidth;
             actualHeight = imgRatio * actualHeight;
-            actualWidth = 320.0;
+            actualWidth = minHeight;
         }
     }
     CGRect rect = CGRectMake(0.0, 0.0, actualWidth, actualHeight);
@@ -148,6 +153,7 @@
 -(void) uploadImage{
     if(self.imageView.image){
         NSData *data = [self uploadPhoto:self.imageView.image];
+        NSLog(@"%@", data);
         NSString *content = [[NSString alloc] initWithData:data
                                                   encoding:NSUTF8StringEncoding];
         NSString *hash = [[[[content JSONValue] objectForKey:@"upload"] objectForKey:@"image"] objectForKey:@"hash"];
@@ -342,7 +348,9 @@
 - (void)adWhirlDidReceiveAd:(AdWhirlView *)adWhirlView{
     if(self.adView){
         self.adView = nil;
-        self.adWhirl.frame = CGRectOffset(self.adWhirl.frame, 0, 460 - self.adWhirl.frame.size.height);
+        float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+        float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+        self.adWhirl.frame = CGRectOffset(self.adWhirl.frame, 0, (maxHeight-20) - self.adWhirl.frame.size.height);
         [self.adWhirl setUserInteractionEnabled:YES];
     }
 }
@@ -355,5 +363,18 @@
                                   bannerView.frame.size.width,
                                   bannerView.frame.size.height);
     [UIView commitAnimations];
+}
+@end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+-(BOOL)shouldAutorotate
+{
+    return NO;
+}
+
+-(NSUInteger)supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskPortrait;
 }
 @end

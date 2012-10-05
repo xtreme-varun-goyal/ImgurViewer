@@ -23,8 +23,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     [[UIApplication sharedApplication] setStatusBarHidden:YES];
     UIImageView *backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [backgroundView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
     [self.view addSubview:backgroundView];
     [self.view sendSubviewToBack:backgroundView];
     self.scrollView.minimumZoomScale=1.0;
@@ -36,17 +39,17 @@
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
     {
         
-        self.view.frame = CGRectMake(0, 0, 480, 320);
-        self.scrollView.frame = CGRectMake(0, 0, 480, 320);
-        self.scrollView.contentSize=CGSizeMake(480,320);
-        self.imageView.frame = CGRectMake(0, 0, 480, 320);
+        self.view.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.scrollView.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.scrollView.contentSize=CGSizeMake(maxHeight,minHeight);
+        self.imageView.frame = CGRectMake(0, 0, maxHeight, minHeight);
     }
     else
     {
-        self.view.frame = CGRectMake(0, 0, 320,480);
-        self.scrollView.frame = CGRectMake(0, 0, 320, 480);
-        self.scrollView.contentSize=CGSizeMake(320,480);
-        self.imageView.frame = CGRectMake(0, 0, 320,480);
+        self.view.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.scrollView.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.scrollView.contentSize=CGSizeMake(minHeight,maxHeight);
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
     }
     ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = self.scrollView.frame;
     
@@ -119,23 +122,34 @@
 (UIInterfaceOrientation)toInterfaceOrientation 
                                          duration:(NSTimeInterval)duration
 {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
     {
         
-        self.scrollView.frame = CGRectMake(0, 0, 480, 320);
-        self.scrollView.contentSize=CGSizeMake(480,320);
+        self.scrollView.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.scrollView.contentSize=CGSizeMake(maxHeight,minHeight);
         self.imageView.frame = self.scrollView.frame;
     }
     else
     {
-        self.scrollView.frame = CGRectMake(0, 0, 320, 480);
-        self.scrollView.contentSize=CGSizeMake(320,480);
+        self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        self.scrollView.contentSize=CGSizeMake(minHeight,maxHeight);
         self.imageView.frame = self.scrollView.frame;
     }
     ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = self.scrollView.frame;
 }
 
 
+
+@end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return UIInterfaceOrientationPortrait;
+}
 
 @end

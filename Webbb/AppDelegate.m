@@ -35,8 +35,10 @@
     
     UINavigationController *navControl = [[UINavigationController alloc] initWithRootViewController:self.viewController];
     navControl.navigationBarHidden = YES;
-    self.window.rootViewController = navControl;
+    [self.window addSubview:navControl.view];
+    [self.window setRootViewController:navControl];
     [self.window makeKeyAndVisible];
+    [navControl setDelegate:self];
     return YES;
 }
 
@@ -167,4 +169,33 @@
 	}
     return params;
 }
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    // Return YES for supported orientations
+    return interfaceOrientation == UIInterfaceOrientationPortrait;
+}
+
+- (NSUInteger) supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskPortrait;
+}
+
+- (BOOL)shouldAutorotate {
+    return NO;
+}
 @end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+-(BOOL)shouldAutorotate
+{
+    return [[self.viewControllers lastObject] shouldAutorotate];
+}
+
+-(NSUInteger)supportedInterfaceOrientations
+{
+    return [[self.viewControllers lastObject] supportedInterfaceOrientations];
+}
+
+@end
+

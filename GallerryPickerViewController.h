@@ -12,7 +12,7 @@
 #import "UploadImageController.h"
 #import "AdWhirlView.h"
 
-@interface GallerryPickerViewController : UIViewController<ADBannerViewDelegate,AdWhirlDelegate>
+@interface GallerryPickerViewController : UIViewController<ADBannerViewDelegate,AdWhirlDelegate, UISearchBarDelegate, GADBannerViewDelegate, UISearchBarDelegate>
 
 @property (nonatomic,strong) NSArray *results;
 @property (nonatomic, strong) NSMutableData *responseData;
@@ -25,6 +25,7 @@
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *topBtn;
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *latestBtn;
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *nxtBtn;
+@property (nonatomic,strong) IBOutlet UIBarButtonItem *searchBtn;
 @property (nonatomic,strong) NSString *currentViewTitle;
 - (IBAction)buttonClicked:(id)sender;
 @property (nonatomic,strong) AdWhirlView *adWhirl;
@@ -33,4 +34,7 @@
 @property (nonatomic,strong) IBOutlet UIBarButtonItem *uploadBtn;
 @property (nonatomic,strong) UploadImageController *uploadImageView;
 @property (nonatomic,strong) IBOutlet UIScrollView *superScrollView;
+@property (nonatomic,strong) UISearchBar *searchBar;
+@property (nonatomic, retain) NSString *dataParsed;
+@property (nonatomic,strong) GADBannerView *admobView;
 @end

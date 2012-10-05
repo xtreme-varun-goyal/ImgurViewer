@@ -39,6 +39,8 @@
 
 - (void)viewDidLoad
 {
+    float maxHeight = MAX(self.view.frame.size.height, self.view.frame.size.width);
+    float minHeight = MIN(self.view.frame.size.height, self.view.frame.size.width);
     [super viewDidLoad];
     self.scrollViewImage = [[UIScrollView alloc] init];
     self.viewScroll = [[UIScrollView alloc] init];
@@ -52,25 +54,26 @@
     if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
     {
-//        self.view.frame = CGRectMake(0, 0, 480, 320);
-        self.scrollViewImage.frame = CGRectMake(0, 0, 480, 320);
-        self.tableView.frame = CGRectMake(0,320,480, 320);
-        self.viewScroll.frame = CGRectMake(0, 0, 480, 320);
-        self.viewScroll.contentSize = CGSizeMake(480, 640);
-        self.imageView.frame = self.scrollViewImage.frame;
+//        self.view.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.scrollViewImage.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.tableView.frame = CGRectMake(0,minHeight,maxHeight, minHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.viewScroll.contentSize = CGSizeMake(maxHeight, minHeight*2);
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
     }
     else
     {
-//        self.view.frame = CGRectMake(0, 0, 320,480);
-        self.imageView.frame = CGRectMake(0, 0, 320,480);
-        self.scrollViewImage.frame = CGRectMake(0, 0, 320,480);
-        self.tableView.frame = CGRectMake(0, 480, 320, 480);
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        [self.viewScroll setContentSize:CGSizeMake(320, 960)];
+//        self.view.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.scrollViewImage.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight*2)];
     }
     [self.imageView setContentMode:UIViewContentModeScaleAspectFit];
     [[UIApplication sharedApplication] setStatusBarHidden:YES];
     UIImageView *backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [backgroundView sizeToFit];
     [self.view addSubview:backgroundView];
     [self.view sendSubviewToBack:backgroundView];
     [self.scrollViewImage addSubview:self.imageView];
@@ -115,27 +118,29 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
+    float maxHeight = MAX(self.view.frame.size.height, self.view.frame.size.width);
+    float minHeight = MIN(self.view.frame.size.height, self.view.frame.size.width);
     [super viewDidAppear:animated];
     [[UIApplication sharedApplication] setStatusBarHidden:YES];
     UIDeviceOrientation *toInterfaceOrientation = [[UIDevice currentDevice] orientation];
     if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
     {
-        self.view.frame = CGRectMake(0, 0, 480,320);
-        self.scrollViewImage.frame = CGRectMake(0, 0, 480, 320);
-        self.tableView.frame = CGRectMake(0,320,480, 320);
-        self.viewScroll.frame = CGRectMake(0, 0, 480, 320);
-        self.viewScroll.contentSize = CGSizeMake(480, 640);
-        self.imageView.frame = CGRectMake(0, 0, 320,480);
+        self.view.frame = CGRectMake(0, 0, maxHeight,minHeight);
+        self.scrollViewImage.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.tableView.frame = CGRectMake(0,minHeight,maxHeight, minHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.viewScroll.contentSize = CGSizeMake(maxHeight, minHeight*2);
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
     }
     else
     {
-        self.view.frame = CGRectMake(0, 0, 320, 480);
-        self.imageView.frame = CGRectMake(0, 0, 320,480);
-        self.scrollViewImage.frame = CGRectMake(0, 0, 320,480);
-        self.tableView.frame = CGRectMake(0, 480, 320, 480);
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        [self.viewScroll setContentSize:CGSizeMake(320, 960)];
+        self.view.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.scrollViewImage.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight*2)];
     }
     ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = self.scrollViewImage.frame;
     // Release any retained subviews of the main view.
@@ -228,8 +233,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 }  
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {  
-    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding]; 
-    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:@"gallery"] objectForKey:@"captions"];
+    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+    NSMutableArray *keys = [(NSDictionary*)[responseString JSONValue] allKeys];
+    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:keys[0]] objectForKey:@"captions"];
     self.results = resultsArray;
     [self.tableView reloadData];
 }
@@ -274,23 +280,25 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 (UIInterfaceOrientation)toInterfaceOrientation 
                                          duration:(NSTimeInterval)duration
 {
+    float maxHeight = MAX(self.view.frame.size.height, self.view.frame.size.width);
+    float minHeight = MIN(self.view.frame.size.height, self.view.frame.size.width);
     if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
     {
         
-        self.scrollViewImage.frame = CGRectMake(0, 0, 480, 320);
-        self.tableView.frame = CGRectMake(0,320,480, 320);
-        self.viewScroll.frame = CGRectMake(0, 0, 480, 320);
-        self.viewScroll.contentSize = CGSizeMake(480, 640);
+        self.scrollViewImage.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.tableView.frame = CGRectMake(0,minHeight,maxHeight, minHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.viewScroll.contentSize = CGSizeMake(maxHeight, minHeight*2);
         self.imageView.frame = self.scrollViewImage.frame;
     }
     else
     {
-        self.imageView.frame = CGRectMake(0, 0, 320,480);
-        self.scrollViewImage.frame = CGRectMake(0, 0, 320,480);
-        self.tableView.frame = CGRectMake(0, 480, 320, 480);
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        [self.viewScroll setContentSize:CGSizeMake(320, 960)];
+        self.imageView.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.scrollViewImage.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight*2)];
     }
     ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = self.scrollViewImage.frame;
     [self.tableView reloadData];
@@ -302,5 +310,14 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
 
 };
+
+@end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return UIInterfaceOrientationPortrait;
+}
 
 @end

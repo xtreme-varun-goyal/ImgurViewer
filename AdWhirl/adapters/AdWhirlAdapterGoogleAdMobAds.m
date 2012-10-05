@@ -119,7 +119,7 @@
   // Set the frame for this view to match the bounds of the parent adWhirlView.
   GADBannerView *view =
       [[GADBannerView alloc]
-       initWithAdSize:GADAdSizeFromCGSize(adWhirlView.bounds.size)];
+       initWithAdSize:GAD_SIZE_728x90];
 
   view.adUnitID = [self publisherId];
   view.delegate = self;

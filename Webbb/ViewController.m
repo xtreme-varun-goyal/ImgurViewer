@@ -42,6 +42,8 @@ bool isInterstitialLoaded;
 
 - (void)viewDidLoad
 {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     [super viewDidLoad];
     self.playBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [self.playBtn showsTouchWhenHighlighted];
@@ -53,12 +55,13 @@ bool isInterstitialLoaded;
     [self.activityView setHidden:NO];
     [self.activityView startAnimating];
     UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [imageView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
     [self.view addSubview:imageView];
     [self.view sendSubviewToBack:imageView];
     [self.scrollView setScrollEnabled:YES];
     self.scrollView.maximumZoomScale = 2.0;
     self.scrollView.minimumZoomScale = 1; 
-    self.textView.frame = CGRectMake(0, 0, 320, 44);
+    self.textView.frame = CGRectMake(0, 0, minHeight, 44);
     self.textView.numberOfLines = 2;
     self.textView.textColor = [UIColor whiteColor];
 
@@ -117,13 +120,16 @@ bool isInterstitialLoaded;
     return (interfaceOrientation == UIInterfaceOrientationPortrait | interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown);
 }
 
-- (void)initialLoadImages {  
+- (void)initialLoadImages {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
     for(int i = self.pageCount; i < [self.results count]; i ++){
         UIImageView *accountImage = [[UIImageView alloc] init];
-        accountImage.frame = CGRectMake(frameWidth*i,6, 320, 360);
+        accountImage.frame = CGRectMake(frameWidth*i,0, minHeight, self.scrollView.frame.size.height);
         accountImage.image = [UIImage imageNamed:@"Loading.png"];
+        accountImage.contentMode = UIViewContentModeScaleAspectFit;
         [self.scrollView addSubview:accountImage];
         accountImage.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
         accountImage.tag = -4;
@@ -142,14 +148,14 @@ bool isInterstitialLoaded;
     if(initialHeight > frameHeight | initialWidth > frameWidth){
         currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue], (frameHeight-height)/2, frameWidth,height);
     }else{
-        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
     };
     
     NSString *ext = [initial objectForKey:@"ext"];
     
     if([ext isEqualToString:@".gif"]){
         [self.playBtn setHidden:NO];
-        [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (320-32)/2, (372-32)/2, 32, 32)];
+        [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight-32)/2, ((372*maxHeight)/480-32)/2, 32, 32)];
     }
     if(image!=NULL){
         ((UIImageView*)currentView).image = image;
@@ -164,7 +170,7 @@ bool isInterstitialLoaded;
     [self.activityView stopAnimating];
     [self.activityView setHidden:YES];
     self.toolBar.hidden = NO;
-    [self.scrollView setContentOffset:CGPointMake(320 * [self.currentPage intValue], 0)];
+    [self.scrollView setContentOffset:CGPointMake(minHeight * [self.currentPage intValue], 0)];
     id isTextNull = [initial objectForKey:@"title"];
     if(isTextNull == [NSNull null]){
         self.textView.text = @"";
@@ -176,6 +182,8 @@ bool isInterstitialLoaded;
 
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     CGFloat pageWidth = self.scrollView.frame.size.width;
     float fractionalPage = self.scrollView.contentOffset.x / pageWidth;
     NSInteger page = lroundf(fractionalPage);
@@ -213,7 +221,7 @@ bool isInterstitialLoaded;
     
     if([ext isEqualToString:@".gif"] && ![self.thread isExecuting]){
         [self.playBtn setHidden:NO];
-        [self.playBtn setFrame:CGRectMake(320*[self.currentPage intValue] + (320-32)/2, (372-32)/2, 32, 32)];
+        [self.playBtn setFrame:CGRectMake(minHeight*[self.currentPage intValue] + (minHeight-32)/2, ((372*maxHeight)/480-32)/2, 32, 32)];
     }
 }
 
@@ -258,6 +266,8 @@ bool isInterstitialLoaded;
 -(void) loadMoreImages{
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     self.pageCount++;
     [self.activityView startAnimating];
     [self.activityView setHidden:NO];
@@ -268,16 +278,16 @@ bool isInterstitialLoaded;
     int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
 
     if(initialHeight > frameHeight | initialWidth > frameWidth){
-        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
+        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
     }else{
-        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+        currentView.frame = CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
     };
     NSDictionary *initial = [self.results objectAtIndex:[self.currentPage intValue]] ;
     NSString *ext = [initial objectForKey:@"ext"];
     
     if([ext isEqualToString:@".gif"]){
         [self.playBtn setHidden:NO];
-        [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (320-32)/2, (372-32)/2, 32, 32)];
+        [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight-32)/2, ((372*maxHeight)/480-32)/2, 32, 32)];
     }
     
     if(image!=NULL){
@@ -292,6 +302,8 @@ bool isInterstitialLoaded;
 
 - (void) loadImage{
     [self.scrollView setUserInteractionEnabled:NO];
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     int frameWidth = self.scrollView.frame.size.width;
     int frameHeight = self.scrollView.frame.size.height;
     CGFloat pageWidth = self.scrollView.frame.size.width;
@@ -304,9 +316,9 @@ bool isInterstitialLoaded;
     int initialWidth = image.size.width;
     int height = MIN((frameWidth * image.size.height) / image.size.width, frameHeight);
     if(initialHeight > frameHeight | initialWidth > frameWidth){
-        currentView.frame = CGRectMake(frameWidth*page + (320 - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
+        currentView.frame = CGRectMake(frameWidth*page + (minHeight - frameWidth)/2, (frameHeight-height)/2, frameWidth,height);
     }else{
-        currentView.frame = CGRectMake(frameWidth*page + (320 - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
+        currentView.frame = CGRectMake(frameWidth*page + (minHeight - initialWidth)/2, (frameHeight-initialHeight)/2, initialWidth,initialHeight);
     };
     if (currentView.tag == -4) {
         self.currentPage = [NSString stringWithFormat:@"%i",page];
@@ -327,7 +339,7 @@ bool isInterstitialLoaded;
         
         if([ext isEqualToString:@".gif"]){
             [self.playBtn setHidden:NO];
-            [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (320-32)/2, (372-32)/2, 32, 32)];
+            [self.playBtn setFrame:CGRectMake(frameWidth*[self.currentPage intValue] + (minHeight-32)/2, ((372*maxHeight)/480-32)/2, 32, 32)];
         }
         
         [self.activityView stopAnimating];
@@ -420,5 +432,16 @@ didFailToReceiveAdWithError:(GADRequestError *)error {
     fullWebView.imageWidth = [NSString stringWithFormat:@"%f",curView.frame.size.width];
     [self presentModalViewController:fullWebView animated:YES];
 }
+@end
+@implementation UINavigationController (Rotation_IOS6)
 
+-(BOOL)shouldAutorotate
+{
+    return NO;
+}
+
+-(NSUInteger)supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskPortrait;
+}
 @end

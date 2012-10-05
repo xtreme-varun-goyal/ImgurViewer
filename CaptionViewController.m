@@ -41,13 +41,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [imageView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
     [self.view addSubview:imageView];
     [self.view sendSubviewToBack:imageView];
     self.responseData = [NSMutableData data];  
     self.results = [NSMutableArray array];  
     NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:[NSString stringWithFormat:@"http://imgur.com/gallery/%@.json",self.hash]]];  
+                             [NSURL URLWithString:[NSString stringWithFormat:@"http://imgur.com/gallery/%@.json",self.hash]]];
     (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
     [self.buttonItem setAction:@selector(dismissScreen)];
     // Do any additional setup after loading the view from its nib.
@@ -74,12 +77,14 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView 
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     // Attempt to request the reusable cell.
     int i = indexPath.row;
-	UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(320*i, 60 * i, 320, 70)];
+	UITableViewCell *cell = [[UITableViewCell alloc] initWithFrame:CGRectMake(minHeight*i, 60 * i, minHeight, 70)];
     if([self.results objectAtIndex:i]){
         NSDictionary *initial = [self.results objectAtIndex:i] ;
-        CGRect contentRect = CGRectMake(10,0, 300, 70);
+        CGRect contentRect = CGRectMake(10,0, 300*(minHeight/320), 70);
         UILabel *textView = [[UILabel alloc] initWithFrame:contentRect];
         NSString *caption = [initial objectForKey:@"caption"];
         if (([caption rangeOfString:@".gif"].location != NSNotFound || [caption rangeOfString:@".jpg"].location != NSNotFound || [caption rangeOfString:@".png"].location != NSNotFound) && [caption rangeOfString:@"http://"].location != NSNotFound) {
@@ -144,9 +149,21 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     //    self.label.text = [NSString stringWithFormat:@"Connection failed: %@", [error description]];  
 }  
 
+//-(BOOL)shouldAutorotate
+//{
+//    return NO;
+//}
+//
+//-(NSUInteger)supportedInterfaceOrientations
+//{
+//    return UIInterfaceOrientationMaskPortrait;
+//}
+
+
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {  
-    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding]; 
-    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:@"gallery"] objectForKey:@"captions"];
+    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+    NSMutableArray *keys = [(NSDictionary*)[responseString JSONValue] allKeys];
+    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:keys[0]] objectForKey:@"captions"];
     self.results = resultsArray;
     [self.tableView reloadData];
 }
@@ -154,5 +171,38 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 -(void) dismissScreen{
     [self dismissModalViewControllerAnimated:YES];
 }
+
+- (void)willAnimateRotationToInterfaceOrientation:
+(UIInterfaceOrientation)toInterfaceOrientation
+                                         duration:(NSTimeInterval)duration
+{
+    float maxHeight = MAX(self.view.frame.size.height, self.view.frame.size.width);
+    float minHeight = MIN(self.view.frame.size.height, self.view.frame.size.width);
+    if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
+        toInterfaceOrientation == UIInterfaceOrientationLandscapeRight)
+    {
+        self.tableView.frame = CGRectMake(0,(44*minHeight)/320,maxHeight, minHeight-(44*minHeight)/320);
+    }
+    else
+    {
+        self.tableView.frame = CGRectMake(0, (44*maxHeight)/480, minHeight, maxHeight-(44*maxHeight)/480);
+    }
+    ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = self.tableView.frame;
+    [self.tableView reloadData];
+}
+@end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+//-(BOOL)shouldAutorotate
+//{
+//    return NO;
+//}
+//
+//-(NSUInteger)supportedInterfaceOrientations
+//{
+//    return UIInterfaceOrientationMaskPortrait;
+//}
+
 
 @end

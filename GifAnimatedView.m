@@ -49,7 +49,10 @@
 }
 - (void)viewDidLoad
 {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     UIImageView *backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
+    [backgroundView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
     [self.view addSubview:backgroundView];
     self.viewScroll = [[UIScrollView alloc] init];
     self.tableView = [[UITableView alloc] init];
@@ -68,69 +71,67 @@
         float actualHeight = image.size.height;
         float actualWidth = image.size.width;
         float imgRatio = actualWidth/actualHeight;
-        float maxRatio = 320.0/480.0;
+        float maxRatio = (minHeight*1.0)/maxHeight;
         int height;
         int width;
         if(imgRatio!=maxRatio){
             if(imgRatio < maxRatio){
-                imgRatio = 480.0 / actualHeight;
+                imgRatio = (maxHeight*1.0) / actualHeight;
                 actualWidth = imgRatio * actualWidth;
-                actualHeight = 480.0;
+                actualHeight = maxHeight*1.0;
             }
             else{
-                imgRatio = 320.0 / actualWidth;
+                imgRatio = (minHeight*1.0) / actualWidth;
                 actualHeight = imgRatio * actualHeight;
-                actualWidth = 320.0;
+                actualWidth = minHeight*1.0;
             }
             height = MIN(image.size.height,actualHeight);
             width = MIN(image.size.width,actualWidth);
         }
         else{
-            height = MIN(image.size.height,480);
-            width = MIN(image.size.width,320);
+            height = MIN(image.size.height,maxHeight);
+            width = MIN(image.size.width,minHeight);
         }
-        self.webView.frame = CGRectMake((320-width)/2,(480 - height)/2,width,height);
-        NSLog([NSString stringWithFormat:@"Width -> %f Height-> - %f",self.webView.frame.size.width,self.webView.frame.size.height]);
+        self.webView.frame = CGRectMake((minHeight-width)/2,(maxHeight - height)/2,width,height);
         [self.webView loadRequest: [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@.gif",self.imageId]]]];
-        self.view.frame = CGRectMake(0, 0, 320,480);
-        self.tableView.frame = CGRectMake(0, 480, 320, 480);
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        [self.viewScroll setContentSize:CGSizeMake(320, 960)];
+        self.view.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight*2)];
         [self.viewScroll addSubview:self.tableView];
     }else{
         image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self.url]]];
         float actualHeight = image.size.height;
         float actualWidth = image.size.width;
         float imgRatio = actualWidth/actualHeight;
-        float maxRatio = 320.0/480.0;
+        float maxRatio = (minHeight*1.0)/maxHeight;
         int height;
         int width;
         if(imgRatio!=maxRatio){
             if(imgRatio < maxRatio){
-                imgRatio = 480.0 / actualHeight;
+                imgRatio = (maxHeight*1.0) / actualHeight;
                 actualWidth = imgRatio * actualWidth;
-                actualHeight = 480.0;
-            }
+                actualHeight = maxHeight*1.0;            }
             else{
-                imgRatio = 320.0 / actualWidth;
+                imgRatio = (minHeight*1.0) / actualWidth;
                 actualHeight = imgRatio * actualHeight;
-                actualWidth = 320.0;
+                actualWidth = minHeight*1.0;
             }
             height = MIN(image.size.height,actualHeight);
             width = MIN(image.size.width,actualWidth);
         }
         else{
-            height = MIN(image.size.height,480);
-            width = MIN(image.size.width,320);
+            height = MIN(image.size.height,maxHeight);
+            width = MIN(image.size.width,minHeight);
         }
         
-        self.webView.frame = CGRectMake((320-width)/2,(480-height)/2,width,height);
+        self.webView.frame = CGRectMake((minHeight-width)/2,(maxHeight-height)/2,width,height);
         [self.webView setHidden:YES];
         [self.webView loadRequest: [NSURLRequest requestWithURL:[NSURL URLWithString:self.url]]];
-        self.view.frame = CGRectMake(0, 0, 320,480);
-        self.tableView.frame = CGRectMake(0, 480, 320, 480);
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        [self.viewScroll setContentSize:CGSizeMake(320, 480)];
+        self.view.frame = CGRectMake(0, 0, minHeight,maxHeight);
+        self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight)];
     }
     
     [self.webView.scrollView setBackgroundColor:[UIColor clearColor]];
@@ -196,42 +197,42 @@
 (UIInterfaceOrientation)toInterfaceOrientation 
                                          duration:(NSTimeInterval)duration
 {
+    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
         toInterfaceOrientation == UIInterfaceOrientationLandscapeRight){
 
         if(self.imageWidth > 0){
-            self.webView.frame = CGRectMake((480-[self.imageWidth intValue])/2,(320 - [self.imageHeight intValue])/2,[self.imageWidth intValue],[self.imageHeight intValue]);
+            self.webView.frame = CGRectMake((maxHeight-[self.imageWidth intValue])/2,(minHeight - [self.imageHeight intValue])/2,[self.imageWidth intValue],[self.imageHeight intValue]);
         }else{
-            self.webView.frame = CGRectMake((480-self.webView.frame.size.width)/2,(320-self.webView.frame.size.height)/2,self.webView.frame.size.width,self.webView.frame.size.height);
+            self.webView.frame = CGRectMake((maxHeight-self.webView.frame.size.width)/2,(minHeight-self.webView.frame.size.height)/2,self.webView.frame.size.width,self.webView.frame.size.height);
         }
 
-        self.viewScroll.frame = CGRectMake(0, 0, 480, 320);
-        self.viewScroll.contentSize = CGSizeMake(480, 320);
+        self.viewScroll.frame = CGRectMake(0, 0, maxHeight, minHeight);
+        self.viewScroll.contentSize = CGSizeMake(maxHeight, minHeight);
         if([self.tableView.superview isEqual:self.viewScroll]){
-            self.tableView.frame = CGRectMake(0,320,480, 320);
-            self.viewScroll.contentSize = CGSizeMake(480, 640);
+            self.tableView.frame = CGRectMake(0,minHeight,maxHeight, minHeight);
+            self.viewScroll.contentSize = CGSizeMake(maxHeight, minHeight*2);
         }
-        ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = CGRectMake(0, 0, 480, 320);
+        ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = CGRectMake(0, 0, maxHeight, minHeight);
     }
     else
     {
         if(self.imageWidth >0){
-            self.webView.frame =  CGRectMake((320-[self.imageWidth intValue])/2,(480 - [self.imageHeight intValue])/2,[self.imageWidth intValue],[self.imageHeight intValue]);
+            self.webView.frame =  CGRectMake((minHeight-[self.imageWidth intValue])/2,(maxHeight - [self.imageHeight intValue])/2,[self.imageWidth intValue],[self.imageHeight intValue]);
         }else{ 
-            self.webView.frame = CGRectMake((320-self.webView.frame.size.width)/2,(480-self.webView.frame.size.height)/2,self.webView.frame.size.width,self.webView.frame.size.height);
+            self.webView.frame = CGRectMake((minHeight-self.webView.frame.size.width)/2,(maxHeight-self.webView.frame.size.height)/2,self.webView.frame.size.width,self.webView.frame.size.height);
         }
-        self.viewScroll.frame = CGRectMake(0, 0, 320, 480);
-        self.viewScroll.contentSize = CGSizeMake(320,480);
+        self.viewScroll.frame = CGRectMake(0, 0, minHeight, maxHeight);
+        self.viewScroll.contentSize = CGSizeMake(minHeight, maxHeight);
         if([self.tableView.superview isEqual:self.viewScroll]){
-            self.tableView.frame = CGRectMake(0, 480, 320, 480);
-            [self.viewScroll setContentSize:CGSizeMake(320, 960)];
+            self.tableView.frame = CGRectMake(0, maxHeight, minHeight, maxHeight);
+            [self.viewScroll setContentSize:CGSizeMake(minHeight, maxHeight*2)];
         }
         
 
-        ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = CGRectMake(0, 0, 320, 480);
-    }
-    NSLog(@"The frame position is %d, %d",self.view.frame.origin.x,self.view.frame.origin.y);
-    
+        ((UIImageView*)[self.view.subviews objectAtIndex:0]).frame = CGRectMake(0, 0, minHeight, maxHeight);
+    }    
 }
 - (void) webViewDidFinishLoad:(UIWebView *)webView{
     if(self.imageWidth <=0){
@@ -329,8 +330,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 }  
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {  
-    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding]; 
-    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:@"gallery"] objectForKey:@"captions"];
+    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+    NSMutableArray *keys = [(NSDictionary*)[responseString JSONValue] allKeys];
+    NSArray *resultsArray = [[(NSDictionary*)[responseString JSONValue] objectForKey:keys[0]] objectForKey:@"captions"];
     self.results = resultsArray;
     [self.tableView reloadData];
 }
@@ -341,4 +343,13 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
     
 };
+@end
+
+@implementation UINavigationController (Rotation_IOS6)
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return UIInterfaceOrientationPortrait;
+}
+
 @end
