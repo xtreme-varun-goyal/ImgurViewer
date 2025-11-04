@@ -2,19 +2,18 @@
 //  AppDelegate.h
 //  ImgurViewer
 //
-//  Created by Varun Goyal on 12-01-12.
-//  Updated for iOS 15+ - 2025
-//  Copyright (c) 2012 University of Waterloo. All rights reserved.
+//  Completely rewritten for iOS 15+ - 2025
+//  Copyright (c) 2012-2025 University of Waterloo. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
-#import "GallerryPickerViewController.h"
 
-@class ViewController;
+NS_ASSUME_NONNULL_BEGIN
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
-@property (strong, nonatomic) GallerryPickerViewController *viewController;
 
 @end
+
+NS_ASSUME_NONNULL_END
