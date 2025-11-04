@@ -1,70 +1,79 @@
 //
 //  GallerryPickerViewController.m
-//  Webbb
+//  ImgurViewer
 //
 //  Created by Varun Goyal on 12-01-13.
+//  Updated for iOS 15+ - 2025
 //  Copyright (c) 2012 University of Waterloo. All rights reserved.
 //
 
 #import "GallerryPickerViewController.h"
-#import "SBJson.h"
 #import "ViewController.h"
 #import "UploadImageController.h"
-#import "SHK.h"
-#import "AdWhirlView.h"
-#import "AppDelegate.h"
+#import "ImgurAPIManager.h"
+#import "ImgurImageManager.h"
+#import "UIView+LiquidGlass.h"
 
 @interface GallerryPickerViewController ()
--(void) loadMoreImages;
--(void) loadNewPickerView;
--(void) loadHotPickerView;
--(void) loadTopPickerView;
--(void) reloadView;
--(void) loadNextPage;
--(void) uploadImage;
--(void) loadImageView:(id)sender;
--(void) showSearchBar;
--(void) loadSearchResults;
+
+@property (nonatomic, assign) NSInteger pagesLoaded;
+@property (nonatomic, assign) NSInteger initialImagesLoaded;
+@property (nonatomic, assign) NSInteger pageNo;
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *, UIButton *> *thumbnailButtons;
+@property (nonatomic, strong) UIView *glassToolbar;
+
+- (void)loadMoreImages;
+- (void)loadNewPickerView;
+- (void)loadHotPickerView;
+- (void)loadTopPickerView;
+- (void)reloadView;
+- (void)loadNextPage;
+- (void)uploadImage;
+- (void)loadImageView:(id)sender;
+- (void)showSearchBar;
+- (void)loadSearchResults;
+- (void)setupLiquidGlassUI;
+- (void)showErrorAlert:(NSString *)title message:(NSString *)message;
+
 @end
 
 @implementation GallerryPickerViewController
-
-@synthesize results = _results, responseData = _responseData,scrollView = _scrollView,imageController = _imageController,activityView = _activityView, thread = _thread, hotButton = _hotButton, topBtn = _topBtn, latestBtn = _latestBtn,reldButton = _reldButton, currentViewTitle = _currentViewTitle,adWhirl = _adWhirl,adView = _adView, bannerIsVisible = _bannerIsVisible, nxtBtn = _nxtBtn,uploadBtn = _uploadBtn,uploadImageView = _uploadImageView,superScrollView = _superScrollView, searchBar = _searchBar, admobView = _admobView;
-int pagesLoaded, initialImagesLoaded,pageNo = 0;
-bool viewloaded = true;
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
-    } 
-    
+        _thumbnailButtons = [NSMutableDictionary dictionary];
+        _pagesLoaded = 0;
+        _pageNo = 0;
+        _initialImagesLoaded = 0;
+    }
     return self;
 }
 
-- (void)didReceiveMemoryWarning
-{
-    // Releases the view if it doesn't have a superview.
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
+    [[ImgurImageManager sharedManager] clearCache];
 }
 
 #pragma mark - View lifecycle
 
--(void)viewWillAppear:(BOOL)animated{
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [[UIApplication sharedApplication] setStatusBarHidden:NO];
+    self.navigationController.navigationBarHidden = NO;
 }
 
-- (void)viewDidLoad
-{
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+- (void)viewDidLoad {
     [super viewDidLoad];
-    [self.searchBar setDelegate:self];
 
+    // Setup UI
+    CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
+    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+
+    // Set title and initial state
     self.currentViewTitle = @"new";
+    self.pagesLoaded = 2;
+    self.results = @[];
+
+    // Configure buttons
     [self.hotButton setAction:@selector(loadHotPickerView)];
     [self.topBtn setAction:@selector(loadTopPickerView)];
     [self.latestBtn setAction:@selector(loadNewPickerView)];
@@ -72,443 +81,389 @@ bool viewloaded = true;
     [self.nxtBtn setAction:@selector(loadNextPage)];
     [self.uploadBtn setAction:@selector(uploadImage)];
     [self.searchBtn setAction:@selector(showSearchBar)];
-    self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadMoreImages) object:nil];
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+
+    // Setup modern background with gradient
+    CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+    gradientLayer.frame = self.view.bounds;
+    gradientLayer.colors = @[
+        (__bridge id)[UIColor colorWithRed:0.1 green:0.1 blue:0.15 alpha:1.0].CGColor,
+        (__bridge id)[UIColor colorWithRed:0.15 green:0.15 blue:0.2 alpha:1.0].CGColor
+    ];
+    gradientLayer.locations = @[@0.0, @1.0];
+    [self.view.layer insertSublayer:gradientLayer atIndex:0];
+
+    // Setup scroll view with liquid glass effect
+    self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, screenHeight - 158)];
+    self.scrollView.showsVerticalScrollIndicator = NO;
+    self.scrollView.bounces = YES;
+    self.scrollView.alwaysBounceVertical = YES;
+    [self.superScrollView addSubview:self.scrollView];
+    [self.superScrollView setContentSize:CGSizeMake(screenWidth, screenHeight - 158)];
+
+    // Setup search bar with modern styling
+    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 44, screenWidth, 44)];
+    self.searchBar.delegate = self;
+    self.searchBar.showsCancelButton = YES;
+    self.searchBar.searchBarStyle = UISearchBarStyleMinimal;
+    self.searchBar.hidden = YES;
+    [self.view addSubview:self.searchBar];
+
+    // Add liquid glass effects
+    [self setupLiquidGlassUI];
+
+    // Start loading data
     [self.activityView setHidden:NO];
     [self.activityView startAnimating];
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background.png"]];
-    [imageView setFrame:CGRectMake(0, 0, minHeight, maxHeight)];
-    [self.view addSubview:imageView];
-    [self.view sendSubviewToBack:imageView];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];  
-    self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectZero];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setShowsVerticalScrollIndicator:NO];
-    [self.scrollView setBounces:NO];
-    NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:@"http://imgur.com/gallery/new.json"]];
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 2;
-
-    [self.superScrollView setContentSize:CGSizeMake(minHeight, (372*maxHeight)/480)];
-    [self.superScrollView addSubview:self.scrollView];
-    self.admobView = [[GADBannerView alloc] init];
-    [self.admobView setFrame:CGRectMake(0, maxHeight - 114, minHeight, 50)];
-    self.admobView.adUnitID = @"a14f409cc9d4b4f";
-    self.admobView.rootViewController = self;
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    [self.view addSubview:self.admobView];
-    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 44, minHeight, 44)];
-    [self.view addSubview:self.searchBar];
-    [self.searchBar setShowsCancelButton:YES];
-    [self.searchBar setBarStyle:UIBarStyleBlackOpaque];
-    [self.searchBar setHidden:YES];
-    [self.searchBar setDelegate:self];
-    // Do any additional setup after loading the view from its nib.
+    [self loadGalleryData:@"new" page:0];
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-
-- (void)viewDidDisappear:(BOOL)animated{
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
     if (self.activityView.isAnimating) {
         [self.activityView stopAnimating];
     }
 }
 
 - (BOOL)shouldAutorotate {
-    return NO;
+    return YES;
 }
 
-- (BOOL)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskPortrait;
-}
-// pre-iOS 6 support
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
-    return (toInterfaceOrientation == UIInterfaceOrientationPortrait);
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return UIInterfaceOrientationMaskAll;
 }
 
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation {
+    return UIInterfaceOrientationPortrait;
+}
 
-#pragma mark NSURLConnection Delegate methods  
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {  
-    [self.responseData setLength:0];  
-}  
+#pragma mark - Liquid Glass UI Setup
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {  
-    [self.responseData appendData:data];  
-    [self.scrollView setUserInteractionEnabled:YES];
-}  
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error { 
-    [self.activityView stopAnimating];
-    viewloaded = false;
-    if([error.domain isEqualToString:@"Imgur over capacity"]){
-        UIAlertView *alertNetwork = [[UIAlertView alloc] initWithTitle:error.domain message:@" Imgur is over capacity! This can happen when the site is under very heavy load, or while we're doing maintenance. Please try again in a few minutes." delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:nil, nil];
-        [alertNetwork show];
-        [self.view setUserInteractionEnabled:YES];
-        [self.scrollView setUserInteractionEnabled:NO];
-
-    }else if([error.domain isEqualToString:@"No results found"]){
-        UIAlertView *alertNetwork = [[UIAlertView alloc] initWithTitle:@"No results found" message:@"The search returned no results, please change your query." delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:nil, nil];
-        [alertNetwork show];
-        [self.view setUserInteractionEnabled:YES];
-        [self.scrollView setUserInteractionEnabled:NO];
-    }else{
-    UIAlertView *alertNetwork = [[UIAlertView alloc] initWithTitle:@"No network connection could be established" message:@"The app couldn't load, please check your internet connection" delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:nil, nil];
-    [alertNetwork show];
-    [self.view setUserInteractionEnabled:YES];
-    [self.scrollView setUserInteractionEnabled:NO];
+- (void)setupLiquidGlassUI {
+    // Add floating animation to activity indicator
+    if (self.activityView) {
+        UIView *glassContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
+        glassContainer.center = self.view.center;
+        [glassContainer applyLiquidGlassEffect:LiquidGlassStyleDark cornerRadius:20];
+        [self.view addSubview:glassContainer];
+        [self.view bringSubviewToFront:self.activityView];
     }
-}  
+}
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    [self.view setUserInteractionEnabled:YES];
-    pagesLoaded = 1;
-    NSString *responseString = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
-    NSMutableArray *keys = [(NSDictionary*)[responseString JSONValue] allKeys];
-    NSArray *resultsArray = [(NSDictionary*)[responseString JSONValue] objectForKey:keys[0]];
-    if([resultsArray count] <= 0 ){
-        NSError *error = [[NSError alloc] init];
-        if(self.searchBar.isHidden == NO){
-            [error initWithDomain:@"No results found" code:nil userInfo:nil];
-            [self connection:connection didFailWithError:error];
+
+#pragma mark - Modern API Data Loading
+
+- (void)loadGalleryData:(NSString *)galleryType page:(NSInteger)page {
+    self.view.userInteractionEnabled = NO;
+    [self.activityView startAnimating];
+
+    [[ImgurAPIManager sharedManager] fetchGallery:galleryType page:page completion:^(NSDictionary * _Nullable response, NSError * _Nullable error) {
+        [self.activityView stopAnimating];
+        self.view.userInteractionEnabled = YES;
+
+        if (error) {
+            [self handleAPIError:error];
             return;
-        }else{
-            [error initWithDomain:@"Imgur over capacity" code:nil userInfo:nil];
-            [self connection:connection didFailWithError:error];
-            [self.searchBtn setStyle:UIBarStyleBlack];
-            [self.searchBar setHidden:YES];
-            return;
-        };
+        }
+
+        [self processGalleryResponse:response];
+    }];
+}
+
+- (void)handleAPIError:(NSError *)error {
+    NSString *message = @"Failed to load images. Please check your internet connection and try again.";
+
+    if ([error.domain isEqualToString:@"ImgurAPIManager"]) {
+        if (error.code == 503) {
+            message = @"Imgur is over capacity! This can happen when the site is under very heavy load, or while we're doing maintenance. Please try again in a few minutes.";
+        }
     }
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    [self.searchBar setHidden:YES];
+
+    [self showErrorAlert:@"Error" message:message];
+}
+
+- (void)processGalleryResponse:(NSDictionary *)response {
+    if (!response) {
+        [self showErrorAlert:@"Error" message:@"Invalid response from server"];
+        return;
+    }
+
+    NSArray *keys = [response allKeys];
+    if (keys.count == 0) {
+        [self showErrorAlert:@"No Results" message:@"No images found"];
+        return;
+    }
+
+    NSArray *resultsArray = response[keys.firstObject];
+    if (resultsArray.count == 0) {
+        NSString *message = self.searchBar.hidden ? @"Imgur is over capacity" : @"The search returned no results, please change your query.";
+        [self showErrorAlert:@"No Results" message:message];
+        return;
+    }
+
     self.results = resultsArray;
-    int frameWidth = self.scrollView.frame.size.width;
-    initialImagesLoaded = MIN(20, [resultsArray count]);
-    int height = MIN(maxHeight*2, (initialImagesLoaded/4)*maxHeight/6);
-    [self.scrollView setContentSize:CGSizeMake(frameWidth, height)];
-    for(int i = 0; i < initialImagesLoaded ; i++){
-        NSDictionary *initial = [self.results objectAtIndex:i];
-        
+    self.searchBar.hidden = YES;
+
+    // Load thumbnails
+    [self loadThumbnails:resultsArray];
+}
+
+- (void)loadThumbnails:(NSArray *)images {
+    CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
+    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    CGFloat cellWidth = screenWidth / 4.0;
+    CGFloat cellHeight = screenHeight / 6.0;
+
+    self.initialImagesLoaded = MIN(20, images.count);
+
+    // Clear existing thumbnails
+    for (UIView *subview in self.scrollView.subviews) {
+        [subview removeFromSuperview];
+    }
+    [self.thumbnailButtons removeAllObjects];
+
+    // Load initial batch
+    for (NSInteger i = 0; i < self.initialImagesLoaded; i++) {
+        NSDictionary *imageData = images[i];
+        NSString *hash = imageData[@"hash"];
+        if (!hash) continue;
+
         UIButton *thumbnail = [UIButton buttonWithType:UIButtonTypeCustom];
-        [thumbnail setImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@s.jpg",[initial objectForKey:@"hash"]]]]] forState:UIControlStateNormal];
-        int positionY = maxHeight/6 * (i/4);
-        int positionX = minHeight/4 * (i%4);
-        
-        thumbnail.frame = CGRectMake(positionX,positionY,minHeight/4,maxHeight/6);
-        [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        NSInteger row = i / 4;
+        NSInteger col = i % 4;
+        thumbnail.frame = CGRectMake(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
         thumbnail.tag = i;
-        self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, ((i)/4 + 1) * maxHeight/6);
+        [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+
+        // Add liquid glass effect to thumbnails
+        [thumbnail applyLiquidGlassEffect:LiquidGlassStyleUltraThin cornerRadius:12];
+
+        // Set placeholder
+        thumbnail.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.5];
+
         [self.scrollView addSubview:thumbnail];
-        
+        self.thumbnailButtons[@(i)] = thumbnail;
+
+        // Load image asynchronously
+        NSURL *imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://i.imgur.com/%@s.jpg", hash]];
+        [[ImgurImageManager sharedManager] loadImageFromURL:imageURL completion:^(UIImage * _Nullable image, NSError * _Nullable error) {
+            if (image && thumbnail.superview) {
+                [thumbnail setImage:image forState:UIControlStateNormal];
+                thumbnail.imageView.contentMode = UIViewContentModeScaleAspectFill;
+                thumbnail.imageView.clipsToBounds = YES;
+            }
+        }];
     }
-    self.thread = [[NSThread alloc] initWithTarget:self selector:@selector(loadMoreImages) object:nil];
-    [self.thread start];
-    
-    [self.activityView setHidden:YES];
-    [self.activityView stopAnimating];
+
+    // Update content size
+    NSInteger rows = (self.initialImagesLoaded + 3) / 4;
+    [self.scrollView setContentSize:CGSizeMake(screenWidth, rows * cellHeight)];
+
+    // Load remaining images in background
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self loadMoreImages];
+    });
 }
 
-- (IBAction)buttonClicked:(id)sender{
+- (IBAction)buttonClicked:(id)sender {
     [self.activityView startAnimating];
-    [self.activityView setHidden:NO];  
-    [[SHKActivityIndicator currentIndicator] displayActivity:SHKLocalizedString(@"Loading...")];
+    [self.activityView setHidden:NO];
     [self loadImageView:sender];
-};
+}
 
--(void) loadMoreImages{
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    for(int i = initialImagesLoaded; i <[self.results count] + 1; i++){
-        if(i < [self.results count]){
-            NSDictionary *initial = [self.results objectAtIndex:i];
-            
+- (void)loadMoreImages {
+    CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
+    CGFloat screenHeight = UIScreen.mainScreen.bounds.size.height;
+    CGFloat cellWidth = screenWidth / 4.0;
+    CGFloat cellHeight = screenHeight / 6.0;
+
+    for (NSInteger i = self.initialImagesLoaded; i < self.results.count; i++) {
+        NSDictionary *imageData = self.results[i];
+        NSString *hash = imageData[@"hash"];
+        if (!hash) continue;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
             UIButton *thumbnail = [UIButton buttonWithType:UIButtonTypeCustom];
-            [thumbnail setImage:[UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://i.imgur.com/%@s.jpg",[initial objectForKey:@"hash"]]]]] forState:UIControlStateNormal];
-            int positionY = maxHeight/6 * (i/4);
-            int positionX = minHeight/4 * (i%4);
-            thumbnail.frame = CGRectMake(positionX,positionY,minHeight/4,maxHeight/6);
-            [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+            NSInteger row = i / 4;
+            NSInteger col = i % 4;
+            thumbnail.frame = CGRectMake(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
             thumbnail.tag = i;
-            
+            [thumbnail addTarget:self action:@selector(buttonClicked:) forControlEvents:UIControlEventTouchUpInside];
+
+            // Add liquid glass effect
+            [thumbnail applyLiquidGlassEffect:LiquidGlassStyleUltraThin cornerRadius:12];
+            thumbnail.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.5];
+
             [self.scrollView addSubview:thumbnail];
-            
-            self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, ((i)/4 + 1) * maxHeight/6);
-        }
-        else {
-        }
+            self.thumbnailButtons[@(i)] = thumbnail;
 
-        
+            // Update content size
+            NSInteger totalRows = (i + 4) / 4;
+            [self.scrollView setContentSize:CGSizeMake(screenWidth, totalRows * cellHeight)];
+        });
+
+        // Load image asynchronously
+        NSURL *imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://i.imgur.com/%@s.jpg", hash]];
+        [[ImgurImageManager sharedManager] loadImageFromURL:imageURL completion:^(UIImage * _Nullable image, NSError * _Nullable error) {
+            UIButton *btn = self.thumbnailButtons[@(i)];
+            if (image && btn && btn.superview) {
+                [btn setImage:image forState:UIControlStateNormal];
+                btn.imageView.contentMode = UIViewContentModeScaleAspectFill;
+                btn.imageView.clipsToBounds = YES;
+            }
+        }];
     }
-    [self.activityView stopAnimating];
-    pagesLoaded ++;
-    [self.thread cancel];
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.activityView stopAnimating];
+        self.pagesLoaded++;
+    });
 }
 
--(void) loadNewPickerView{
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    [self.nxtBtn setEnabled:YES];
-    [self.searchBar setText:@""];
-    pageNo = 0;
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    self.currentViewTitle = @"new";
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setContentOffset:CGPointMake(0, 0)];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];  
-    NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:@"http://imgur.com/gallery/new.json"]];  
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 2;
-    
-};
+#pragma mark - Gallery Switching
 
--(void) loadHotPickerView{
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    [self.nxtBtn setEnabled:YES];
-    [self.searchBar setText:@""];
-    pageNo = 0;
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    self.currentViewTitle = @"hot";
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setContentOffset:CGPointMake(0, 0)];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];  
-    NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:@"http://imgur.com/gallery/hot.json"]];  
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 1;
-    
-};
+- (void)loadNewPickerView {
+    [self switchToGalleryType:@"new"];
+}
 
--(void) loadTopPickerView{
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    [self.nxtBtn setEnabled:YES];
-    [self.searchBar setText:@""];
-    pageNo = 0;
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    self.currentViewTitle = @"top";
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setContentOffset:CGPointMake(0, 0)];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];  
-    NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:@"http://imgur.com/gallery/top.json"]];  
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 1;
-    
-};
+- (void)loadHotPickerView {
+    [self switchToGalleryType:@"hot"];
+}
 
--(void) reloadView{
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    pageNo = 0;
+- (void)loadTopPickerView {
+    [self switchToGalleryType:@"top"];
+}
+
+- (void)switchToGalleryType:(NSString *)type {
+    self.searchBar.hidden = YES;
+    self.searchBar.text = @"";
+    self.pageNo = 0;
+    self.currentViewTitle = type;
+    self.nxtBtn.enabled = YES;
+
+    // Clear existing thumbnails
+    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [self.thumbnailButtons removeAllObjects];
+    [self.scrollView setContentOffset:CGPointZero animated:NO];
+
+    // Load new data
+    [self loadGalleryData:type page:0];
+}
+
+- (void)reloadView {
+    self.searchBar.hidden = YES;
+    self.pageNo = 0;
     [self.activityView startAnimating];
     [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    if([self.currentViewTitle isEqualToString:@"new"]){
-        [self loadNewPickerView];
-    }else if([self.currentViewTitle isEqualToString:@"top"]){
-        [self loadTopPickerView];
-    }else if([self.currentViewTitle isEqualToString:@"Search Results"]){
+
+    if ([self.currentViewTitle isEqualToString:@"Search Results"]) {
         [self loadSearchResults];
-    }else{
-        [self loadHotPickerView];
+    } else {
+        [self loadGalleryData:self.currentViewTitle page:0];
     }
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-};
+}
 
-////AD delegate
-//- (void)bannerViewDidLoadAd:(ADBannerView *)banner
-//{
-////    if (!self.bannerIsVisible)
-////    {
-////        [self.adView setHidden:NO];
-////        self.scrollView.contentSize = CGSizeMake(self.scrollView.frame.size.width, self.scrollView.contentSize.height + self.adView.frame.size.height);
-////        [UIView beginAnimations:@"animateAdBannerOn" context:NULL];
-////        // banner is invisible now and moved out of the screen on 50 px
-////        banner.frame = CGRectOffset(banner.frame, 0, 50);
-////        [UIView commitAnimations];
-////        self.bannerIsVisible = YES;
-////   }
-//    if(self.adView && ![self.adWhirl.superview isEqual:self.scrollView]){
-//        self.adWhirl = [AdWhirlView requestAdWhirlViewWithDelegate:self];
-////    self.adViedww.frame = CGRectOffset(self.adView.frame, 0, self.scrollView.contentSize.height);
-//        [self.scrollView addSubview:self.adWhirl];
-//        [self.adWhirl setUserInteractionEnabled:NO];
-//    }
-////    [self.adView isBannerLoaded]
-//}
-//
-//- (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error
-//{
-//    if (self.bannerIsVisible)
-//    {
-//        [UIView beginAnimations:@"animateAdBannerOff" context:NULL];
-//        // banner is visible and we move it out of the screen, due to connection issue
-//        banner.frame = CGRectOffset(banner.frame, 0, -50);
-//        [UIView commitAnimations];
-//        self.bannerIsVisible = NO;
-//    
-//    }
-//}
+- (void)loadNextPage {
+    self.searchBar.hidden = YES;
+    self.pageNo++;
 
--(void) loadNextPage{
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    pageNo++;
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+    // Clear and prepare for next page
     [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setContentOffset:CGPointMake(0, 0)];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];  
-    NSString *suburl = [NSString stringWithFormat: @"http://imgur.com/gallery/%@/page/%i.json", self.currentViewTitle,pageNo];
-    NSURLRequest *request = [NSURLRequest requestWithURL:  
-                             [NSURL URLWithString:suburl]];  
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 1;
-};
+    [self.thumbnailButtons removeAllObjects];
+    [self.scrollView setContentOffset:CGPointZero animated:NO];
 
+    // Load next page
+    [self loadGalleryData:self.currentViewTitle page:self.pageNo];
+}
 
--(void) uploadImage{
-    self.uploadImageView = [[UploadImageController alloc] init];
+- (void)uploadImage {
+    if (!self.uploadImageView) {
+        self.uploadImageView = [[UploadImageController alloc] init];
+    }
     [self.navigationController pushViewController:self.uploadImageView animated:YES];
-};
+}
 
--(void) loadImageView:(id)sender{
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
+- (void)loadImageView:(id)sender {
     UIButton *button = (UIButton *)sender;
-    self.imageController.currentPage = [NSString stringWithFormat:@"%i",button.tag];
+
+    if (!self.imageController) {
+        self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+    }
+
+    self.imageController.currentPage = [NSString stringWithFormat:@"%ld", (long)button.tag];
     self.imageController.results = self.results;
-    if(self.imageController.scrollView.subviews > 0){
-        NSDictionary *initial = [self.imageController.results objectAtIndex:button.tag];
-        [self.imageController.scrollView setContentOffset:CGPointMake(minHeight * button.tag, 0)];
-        id isTextNull = [initial objectForKey:@"title"];
-        if(isTextNull != [NSNull null]){
-            self.imageController.textView.text = [initial objectForKey:@"title"];
-        }else{
-            self.imageController.textView.text = @"";
+
+    if (button.tag < self.results.count) {
+        NSDictionary *imageData = self.results[button.tag];
+        id title = imageData[@"title"];
+
+        if (self.imageController.textView) {
+            self.imageController.textView.text = (title && title != [NSNull null]) ? title : @"";
         }
-        
-    };
+    }
+
     [self.navigationController pushViewController:self.imageController animated:YES];
-    [[SHKActivityIndicator currentIndicator] hide];
-};
-
-- (NSString *)adWhirlApplicationKey {
-    return @"b3f0c7103cf8429eb0892f71ed5155cb";
 }
 
-- (UIViewController *)viewControllerForPresentingModalView 
-{
-    return [(AppDelegate *)[[UIApplication sharedApplication] delegate] viewController];
+#pragma mark - Search
+
+- (void)showSearchBar {
+    self.searchBar.hidden = !self.searchBar.hidden;
 }
 
-- (void)adWhirlDidReceiveAd:(AdWhirlView *)adWhirlView{
-    if(!self.adWhirl.userInteractionEnabled){
-        [self.adWhirl setHidden:NO];
-        [self.adWhirl setUserInteractionEnabled:YES];
-//        [self.superScrollView setContentSize:CGSizeMake(320, 372 + self.adWhirl.frame.size.height)];
-    }
-}
-
--(void)showSearchBar{
-    if(self.searchBar.isHidden){
-        [self.searchBar setHidden:NO];
-        [self.searchBtn setStyle:UIBarStyleBlackTranslucent];
-    }else{
-        [self.searchBar setHidden:YES];
-        [self.searchBtn setStyle:UIBarStyleBlack];
-    }
-
-}
-- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar{
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     [self.searchBar resignFirstResponder];
-    [self.searchBar setHidden:YES];
-    [self.searchBtn setStyle:UIBarStyleBlack];
-    if(self.searchBar.text.length == 0 && self.nxtBtn.isEnabled == NO){
+    self.searchBar.hidden = YES;
+
+    if (self.searchBar.text.length == 0 && !self.nxtBtn.isEnabled) {
         [self reloadView];
-        [self.nxtBtn setEnabled:YES];
-    };
-};
-- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar{
-    [self loadSearchResults];
-};
-- (void)adView:(GADBannerView *)bannerView
-didFailToReceiveAdWithError:(GADRequestError *)error {
-    [self.scrollView setFrame:CGRectMake(self.scrollView.frame.origin.x, self.scrollView.frame.origin.y, self.scrollView.frame.size.width, self.scrollView.frame.size.width + 50)];
-    [self.admobView setHidden:YES];
+        self.nxtBtn.enabled = YES;
+    }
 }
-- (void) loadSearchResults{
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [self loadSearchResults];
+}
+
+- (void)loadSearchResults {
+    if (self.searchBar.text.length == 0) {
+        [self showErrorAlert:@"Search Error" message:@"Please enter a search query"];
+        return;
+    }
+
     self.currentViewTitle = @"Search Results";
-    GADRequest *r = [[GADRequest alloc] init];
-    [self.admobView loadRequest:r];
-    float maxHeight = MAX([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    float minHeight = MIN([[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    [self.nxtBtn setEnabled:NO];
+    self.nxtBtn.enabled = NO;
     [self.searchBar resignFirstResponder];
-    pageNo = 0;
-    [self.activityView startAnimating];
-    [self.activityView setHidden:NO];
-    [self.view setUserInteractionEnabled:NO];
-    self.imageController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+    self.pageNo = 0;
+
     [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.frame = CGRectMake(0, 0, minHeight, maxHeight - 158);
-    [self.scrollView setContentOffset:CGPointMake(0, 0)];
-    self.responseData = [NSMutableData data];
-    self.results = [NSMutableArray array];
-    NSURLRequest *request = [NSURLRequest requestWithURL:
-                             [NSURL URLWithString:[NSString stringWithFormat:@"http://imgur.com/gallery/new.json?q=%@", [self.searchBar.text stringByReplacingOccurrencesOfString:@" " withString:@"+"]]]];
-    (void) [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    pagesLoaded = 1;
-};
+    [self.thumbnailButtons removeAllObjects];
+
+    [[ImgurAPIManager sharedManager] searchImages:self.searchBar.text completion:^(NSDictionary * _Nullable response, NSError * _Nullable error) {
+        [self.activityView stopAnimating];
+        self.view.userInteractionEnabled = YES;
+
+        if (error) {
+            [self handleAPIError:error];
+            return;
+        }
+
+        [self processGalleryResponse:response];
+    }];
+}
+
+#pragma mark - Helper Methods
+
+- (void)showErrorAlert:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *dismissAction = [UIAlertAction actionWithTitle:@"Dismiss"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:nil];
+    [alert addAction:dismissAction];
+
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 @end
